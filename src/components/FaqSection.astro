@@ -3,7 +3,7 @@ const { faqs } = Astro.props;
 import { PortableText } from "astro-portabletext";
 
 // Generate the JSON-LD for the <head>
-const faqSchema = {
+const faqSchema = faqs ? {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": faqs.map((item) => ({
@@ -11,42 +11,50 @@ const faqSchema = {
     "name": item.question,
     "acceptedAnswer": {
       "@type": "Answer",
-      "text": item.atomicAnswer // Use the Atomic Answer for the Schema
-    },
-    "dateModified": item.lastReviewed
+      "text": item.atomicAnswer
+    }
   }))
-};
+} : null;
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+{faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
 
-<section class="py-16 bg-slate-50">
-  <div class="max-w-3xl mx-auto px-6">
-    <h2 class="text-3xl font-black text-slate-900 mb-10 text-center">Frequently Asked Questions</h2>
+<section class="py-12">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="text-2xl font-black text-slate-900 mb-8">Shipping Questions & Answers</h2>
     
-    <div class="space-y-4">
+    <div class="space-y-3">
       {faqs.map((item, index) => (
-        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-sm hover:border-blue-200 transition-colors">
+          {/* THE BUTTON */}
           <button 
-            class="w-full text-left p-6 flex justify-between items-center group"
-            onclick={`const el = document.getElementById('faq-content-${index}'); el.classList.toggle('hidden');`}
+            type="button"
+            class="w-full text-left p-6 flex justify-between items-center group bg-white"
+            onclick={`const content = document.getElementById('faq-ans-${index}'); content.classList.toggle('hidden');`}
           >
-            <span class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+            <span class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors pr-4">
               {item.question}
             </span>
-            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           
-          <div id={`faq-content-${index}`} class="hidden px-6 pb-6 border-t border-slate-50 pt-4">
-            <div class="prose prose-blue prose-sm text-slate-600">
+          {/* THE ANSWER AREA */}
+          <div id={`faq-ans-${index}`} class="hidden px-6 pb-6 border-t border-slate-50 pt-4 bg-slate-50/30">
+            <div class="prose prose-blue prose-sm text-slate-600 max-w-none">
+              {/* This renders the Detailed Answer from Sanity */}
               <PortableText value={item.detailedAnswer} />
             </div>
             
-            <p class="mt-4 text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-              Last Verified: {new Date(item.lastReviewed).toLocaleDateString('en-AE', { month: 'long', year: 'numeric' })}
-            </p>
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                 Verified: {item.lastReviewed}
+               </span>
+               <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                 {item.targetEntity || 'Logistics'}
+               </span>
+            </div>
           </div>
         </div>
       ))}

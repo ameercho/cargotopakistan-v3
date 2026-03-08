@@ -3,6 +3,7 @@ import { sanityClient } from "sanity:client";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { urlFor } from "../../lib/sanity";
 import { PortableText } from "astro-portabletext";
+import FaqSection from "../../components/FaqSection.astro"; // Import our new component
 
 // 1. Generate paths for all services
 export async function getStaticPaths() {
@@ -14,33 +15,37 @@ export async function getStaticPaths() {
   }));
 }
 
-const { service } = Astro.props;
+const { slug } = Astro.params;
+
+// 2. Fetch the service with the NEW FAQ fields included
+const service = await sanityClient.fetch(`
+  *[_type == "service" && slug.current == $slug][0]{
+    ...,
+    faqs[] {
+      question,
+      atomicAnswer,
+      detailedAnswer,
+      lastReviewed
+    }
+  }
+`, { slug });
+
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
-// 2. Expertise: FAQ Schema for SEO
-// This helps you rank for "How long does cargo take to Pakistan?" etc.
-const faqSchema = {
+// 3. GEO-Optimized FAQ Schema for Search Engines
+// We now build this dynamically from your Sanity entries
+const faqSchema = service.faqs ? {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": `How long does ${service.title} to Pakistan take?`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": `Our ${service.title} service typically delivers to major cities in Pakistan within the standard industry timeframe. Contact us for express options.`
-      }
-    },
-    {
-      "@type": "Question",
-      "name": `Do you provide door-to-door ${service.title} to Pakistan?`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes, we provide full door-to-door service from anywhere in Dubai/UAE to any city in Pakistan, including customs clearance."
-      }
+  "mainEntity": service.faqs.map((faq) => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.atomicAnswer
     }
-  ]
-};
+  }))
+} : null;
 ---
 
 <BaseLayout 
@@ -86,6 +91,12 @@ const faqSchema = {
         <PortableText value={service.details} />
       </div>
 
+      {service.faqs && service.faqs.length > 0 && (
+        <div class="mt-20 border-t border-slate-100 pt-16">
+          <FaqSection faqs={service.faqs} />
+        </div>
+      )}
+
       <div class="mt-20 p-8 md:p-12 bg-slate-900 rounded-[2rem] text-white relative overflow-hidden shadow-2xl">
         <div class="relative z-10">
           <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Ship {service.title}?</h2>
@@ -114,5 +125,5 @@ const faqSchema = {
     </article>
   </main>
 
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
 </BaseLayout>

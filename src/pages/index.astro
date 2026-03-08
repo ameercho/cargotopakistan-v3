@@ -8,19 +8,31 @@ import ServiceSection from "../components/ServiceSection.astro";
 import Hero from "../components/Hero.astro";
 import WhyChooseUs from "../components/WhyChooseUs.astro";
 import PartnerLogos from "../components/PartnerLogos.astro";
+import FaqSection from "../components/FaqSection.astro"; // Import the component
 
 // 1. Fetch data
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 const services = await sanityClient.fetch(`*[_type == "service"] | order(_createdAt asc)`);
 const rates = await sanityClient.fetch(`*[_type == "rateCard"] | order(pricePerKg asc)`);
 
+// Fetch Homepage Specific Data (Including your new FAQs)
+const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
+  ...,
+  faqs[] {
+    question,
+    atomicAnswer,
+    detailedAnswer,
+    lastReviewed,
+    targetEntity
+  }
+}`);
+
 // Fetch Partners
 const globalPartners = await sanityClient.fetch(`*[_type == "partner" && type == "global"]`);
 const localPartners = await sanityClient.fetch(`*[_type == "partner" && type == "local"]`);
-
 const trustData = await sanityClient.fetch(`*[_type == "trustPoints"][0]`);
 
-// 2. Technical SEO Schema (Linked to 1,900+ Volume Keywords)
+// 2. Technical SEO Schema
 const businessSchema = {
   "@context": "https://schema.org",
   "@type": "LogisticsCompany",
@@ -38,19 +50,6 @@ const businessSchema = {
     "addressRegion": "Dubai",
     "addressCountry": "AE"
   },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": "25.2048",
-    "longitude": "55.2708"
-  },
-  "openingHoursSpecification": [
-    {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      "opens": "09:00",
-      "closes": "21:00"
-    }
-  ],
   "knowsAbout": [
     "pakistan cargo", 
     "pak cargo", 
@@ -58,34 +57,53 @@ const businessSchema = {
     "air cargo to pakistan", 
     "cargo dubai to pakistan", 
     "door to door cargo"
-  ],
-  "areaServed": [
-    { "@type": "Country", "name": "United Arab Emirates" },
-    { "@type": "Country", "name": "Pakistan" }
-  ],
-  "memberOf": [
-    { "@type": "Organization", "name": "TCS Express Network" },
-    { "@type": "Organization", "name": "Leopards Courier Service Network" }
   ]
 };
+
+// 3. Dynamic FAQ Schema for AI Overviews
+const faqSchema = homeData?.faqs ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": homeData.faqs.map((faq) => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.atomicAnswer
+    }
+  }))
+} : null;
 ---
 
 <BaseLayout 
   title={settings?.title || "Pakistan Cargo from Dubai | Best Pak Cargo Service - PakCargo.ae"}
   description={settings?.description || "Leading pakistan cargo service from Dubai. We offer air and sea pak cargo to pakistan with secure door-to-door delivery."}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(businessSchema)} />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+
   <Hero />
 
   <main>
     <ServiceSection services={services} />
     
     <PartnerLogos globalPartners={globalPartners} localPartners={localPartners} />
+    
     {trustData && <WhyChooseUs data={trustData} />}
 
-    <section id="rates" class="py-10"> <PriceGrid rates={rates} />
-
-      <BlogSection />
+    <section id="rates" class="py-10">
+      <PriceGrid rates={rates} />
     </section>
+
+    <BlogSection />
+
+    {homeData?.faqs && homeData.faqs.length > 0 && (
+      <div class="bg-slate-50 py-10 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-6">
+          <FaqSection faqs={homeData.faqs} />
+        </div>
+      </div>
+    )}
 
     <section class="py-20 bg-slate-900 text-white">
       <div class="max-w-4xl mx-auto px-6 text-center">
@@ -100,4 +118,17 @@ const businessSchema = {
             href={`https://wa.me/${settings?.ctaValue}`} 
             class="w-full sm:w-auto inline-flex justify-center items-center px-10 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all text-lg shadow-lg shadow-green-900/20"
           >
-            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01
+            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01"/></svg>
+            WhatsApp Now
+          </a>
+          <a 
+            href={`tel:${settings?.phone}`} 
+            class="w-full sm:w-auto inline-flex justify-center items-center px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all text-lg"
+          >
+            Call Specialist
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
