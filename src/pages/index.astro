@@ -32,31 +32,74 @@ const globalPartners = await sanityClient.fetch(`*[_type == "partner" && type ==
 const localPartners = await sanityClient.fetch(`*[_type == "partner" && type == "local"]`);
 const trustData = await sanityClient.fetch(`*[_type == "trustPoints"][0]`);
 
-// 2. Technical SEO Schema
+// 2. business Schema
 const businessSchema = {
   "@context": "https://schema.org",
-  "@type": "LogisticsCompany",
-  "name": "PakCargo.ae",
-  "url": "https://pakcargo.ae",
-  "logo": "https://pakcargo.ae/favicon.svg",
-  "image": settings?.ogImage ? urlFor(settings.ogImage).width(1200).url() : "https://pakcargo.ae/og-image.jpg",
-  "telephone": settings?.phone || "+971XXXXXXXXX",
-  "priceRange": "$$",
-  "description": settings?.description || "Reliable pakistan cargo and pak cargo services. Door-to-door delivery from Dubai to all cities in Pakistan.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": settings?.address || "Dubai, UAE",
-    "addressLocality": "Dubai",
-    "addressRegion": "Dubai",
-    "addressCountry": "AE"
-  },
-  "knowsAbout": [
-    "pakistan cargo", 
-    "pak cargo", 
-    "cargo to pakistan", 
-    "air cargo to pakistan", 
-    "cargo dubai to pakistan", 
-    "door to door cargo"
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": "https://pakcargo.ae/#organization",
+      "name": "PakCargo.ae",
+      "url": "https://pakcargo.ae",
+      "logo": "https://pakcargo.ae/favicon.svg",
+      "image": settings?.ogImage ? urlFor(settings.ogImage).width(1200).url() : "https://pakcargo.ae/og-image.jpg",
+      "telephone": settings?.phone || "+971XXXXXXXXX",
+      "priceRange": "AED",
+      "description": "Professional door-to-door cargo to Pakistan. We provide free home pickup across Dubai, Abu Dhabi, and Sharjah. Secure air and sea freight experts.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Dubai",
+        "addressRegion": "Dubai",
+        "addressCountry": "AE"
+        // Street address removed to operate as a Service-Area Business (SAB)
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "25.2048",
+        "longitude": "55.2708"
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          "opens": "09:00",
+          "closes": "21:00"
+        }
+      ],
+      "knowsAbout": [
+        "pakistan cargo", 
+        "pak cargo", 
+        "cargo to pakistan", 
+        "air cargo to pakistan", 
+        "cargo dubai to pakistan", 
+        "door to door cargo pickup",
+        "free home pickup dubai"
+      ],
+      "areaServed": [
+        { "@type": "City", "name": "Dubai" },
+        { "@type": "City", "name": "Abu Dhabi" },
+        { "@type": "City", "name": "Sharjah" },
+        { "@type": "City", "name": "Ajman" },
+        { "@type": "City", "name": "Al Ain" },
+        { "@type": "City", "name": "Ras Al Khaimah" },
+        { "@type": "Country", "name": "Pakistan" }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://pakcargo.ae/#organization",
+      "name": "PakCargo.ae",
+      "url": "https://pakcargo.ae",
+      "logo": "https://pakcargo.ae/favicon.svg",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "@type": "ContactPoint",
+        "telephone": settings?.phone || "+971XXXXXXXXX",
+        "contactType": "customer service",
+        "areaServed": ["AE", "PK"],
+        "availableLanguage": ["English", "Urdu", "Hindi"]
+      }
+    }
   ]
 };
 
