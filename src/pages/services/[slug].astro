@@ -3,7 +3,7 @@ import { sanityClient } from "sanity:client";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { urlFor } from "../../lib/sanity";
 import { PortableText } from "astro-portabletext";
-import FaqSection from "../../components/FaqSection.astro"; // Import our new component
+import FaqSection from "../../components/FaqSection.astro"; 
 
 // 1. Generate paths for all services
 export async function getStaticPaths() {
@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 
-// 2. Fetch the service with the NEW FAQ fields included
+// 2. Fetch the service with necessary fields
 const service = await sanityClient.fetch(`
   *[_type == "service" && slug.current == $slug][0]{
     ...,
@@ -32,20 +32,79 @@ const service = await sanityClient.fetch(`
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
-// 3. GEO-Optimized FAQ Schema for Search Engines
-// We now build this dynamically from your Sanity entries
-const faqSchema = service.faqs ? {
+// 3. COMBINED SCHEMA (Service + Breadcrumbs + FAQ)
+// This creates a single source of truth for Google on this page
+const combinedSchema = {
   "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": service.faqs.map((faq) => ({
-    "@type": "Question",
-    "name": faq.question,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": faq.atomicAnswer
-    }
-  }))
-} : null;
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": service.title,
+      "description": service.description || service.metaDescription,
+      "provider": {
+        "@id": "https://pakcargo.ae/#organization" 
+      },
+      "areaServed": [
+        { "@type": "Country", "name": "United Arab Emirates" },
+        { "@type": "Country", "name": "Pakistan" }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Cargo Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Door-to-Door Delivery"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Free Home Pickup"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://pakcargo.ae"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Services",
+          "item": "https://pakcargo.ae/services" 
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": service.title,
+          "item": `https://pakcargo.ae/services/${service.slug.current}`
+        }
+      ]
+    },
+    ...(service.faqs ? [{
+      "@type": "FAQPage",
+      "mainEntity": service.faqs.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.atomicAnswer
+        }
+      }))
+    }] : [])
+  ]
+};
 ---
 
 <BaseLayout 
@@ -125,5 +184,5 @@ const faqSchema = service.faqs ? {
     </article>
   </main>
 
-  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+  <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} />
 </BaseLayout>
