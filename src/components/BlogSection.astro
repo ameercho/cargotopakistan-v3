@@ -1,0 +1,68 @@
+---
+import { sanityClient } from "sanity:client";
+import { urlFor } from "../lib/sanity";
+
+// Fetch the 3 most recent blog posts
+const posts = await sanityClient.fetch(`
+  *[_type == "post"] | order(publishedAt desc)[0...3] {
+    title,
+    slug,
+    mainImage,
+    publishedAt,
+    metaDescription
+  }
+`);
+---
+
+<section class="py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-6">
+    
+    <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      <div class="max-w-2xl">
+        <h2 class="text-blue-600 font-bold uppercase tracking-widest text-sm mb-4">Expert Logistics Guides</h2>
+        <p class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+          Everything you need to know about <span class="text-blue-600">Cargo to Pakistan</span>
+        </p>
+      </div>
+      <a href="/blog" class="group flex items-center gap-2 font-bold text-slate-900 hover:text-blue-600 transition-colors">
+        View All Guides
+        <span class="group-hover:translate-x-1 transition-transform">→</span>
+      </a>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      {posts.map((post) => (
+        <article class="group relative flex flex-col bg-slate-50 rounded-[2rem] p-4 border border-transparent hover:border-blue-100 hover:bg-white hover:shadow-2xl transition-all duration-500">
+          <div class="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+            <img 
+              src={urlFor(post.mainImage).width(600).height(450).url()} 
+              alt={post.mainImage.alt}
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+          </div>
+
+          <div class="px-4 pb-4 flex flex-col flex-grow">
+            <time class="text-xs font-bold text-slate-400 uppercase tracking-tighter mb-3">
+              {new Date(post.publishedAt).toLocaleDateString('en-AE', { month: 'long', year: 'numeric' })}
+            </time>
+            <h3 class="text-xl font-bold text-slate-900 mb-4 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+              <a href={`/blog/${post.slug.current}`}>
+                <span class="absolute inset-0"></span>
+                {post.title}
+              </a>
+            </h3>
+            <p class="text-slate-600 text-sm line-clamp-2 mb-6">
+              {post.metaDescription}
+            </p>
+            <div class="mt-auto flex items-center text-blue-600 font-bold text-sm">
+              Read Guide 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

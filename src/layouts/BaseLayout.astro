@@ -1,0 +1,39 @@
+---
+import '../styles/global.css';
+import { sanityClient } from "sanity:client";
+import { urlFor } from "../lib/sanity";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: any;
+}
+
+const { title, description, ogImage } = Astro.props;
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
+const finalTitle = title || settings?.title || "PakCargo.ae | Pakistan Cargo Services";
+const finalDesc = description || settings?.description || "Reliable cargo and courier services from Dubai to Pakistan.";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <title>{finalTitle}</title>
+    <meta name="description" content={finalDesc} />
+    <link rel="canonical" href="https://pakcargo.ae" />
+
+    <meta property="og:title" content={finalTitle} />
+    <meta property="og:description" content={finalDesc} />
+    {ogImage && <meta property="og:image" content={urlFor(ogImage).width(1200).url()} />}
+  </head>
+  <body class="bg-slate-50 min-h-screen font-sans">
+    <slot /> <footer class="bg-slate-900 text-slate-400 py-10 text-center border-t border-slate-800">
+      <p class="text-sm uppercase tracking-widest">&copy; 2026 PakCargo.ae</p>
+    </footer>
+  </body>
+</html>

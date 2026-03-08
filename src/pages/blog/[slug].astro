@@ -1,0 +1,102 @@
+---
+import { sanityClient } from "sanity:client";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { urlFor } from "../../lib/sanity";
+import { PortableText } from "astro-portabletext";
+
+// 1. Fetch all blog posts to generate the URLs
+export async function getStaticPaths() {
+  const posts = await sanityClient.fetch(`*[_type == "post"]`);
+  return posts.map((post) => ({
+    params: { slug: post.slug.current },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+
+// 2. Fetch Author and Site Settings for the CTA/Footer
+const author = await sanityClient.fetch(`*[_type == "author" && _id == $authorRef][0]`, { authorRef: post.author?._ref });
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
+// 3. SEO FAQ Schema Logic
+const faqSchema = post.faqs ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": post.faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer
+    }
+  }))
+} : null;
+---
+
+<BaseLayout 
+  title={post.seoTitle || post.title} 
+  description={post.metaDescription}
+  ogImage={post.mainImage}
+>
+  <article class="max-w-4xl mx-auto px-6 py-20">
+    
+    <header class="mb-12 text-center">
+      <div class="flex items-center justify-center gap-2 text-blue-600 font-bold mb-4 uppercase tracking-widest text-sm">
+        <span>Logistics Guide</span>
+        <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+        <time>{new Date(post.publishedAt).toLocaleDateString('en-AE', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-8 tracking-tight">
+        {post.title}
+      </h1>
+      
+      {post.mainImage && (
+        <img 
+          src={urlFor(post.mainImage).width(1200).height(600).url()} 
+          alt={post.mainImage.alt}
+          class="w-full h-auto rounded-3xl shadow-2xl mb-12 border border-slate-100"
+        />
+      )}
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      
+      <div class="lg:col-span-8">
+        <div class="prose prose-lg prose-slate max-w-none 
+          prose-headings:text-slate-900 prose-headings:font-bold
+          prose-a:text-blue-600 prose-strong:text-slate-900">
+          <PortableText value={post.body} />
+        </div>
+
+        {author && (
+          <div class="mt-16 p-8 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col md:flex-row items-center gap-6">
+            {author.image && (
+              <img src={urlFor(author.image).width(200).url()} class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" alt={author.name} />
+            )}
+            <div>
+              <p class="text-sm font-bold text-blue-600 uppercase mb-1">Expert Contributor</p>
+              <h3 class="text-xl font-bold text-slate-900 mb-2">{author.name}</h3>
+              <p class="text-slate-600 text-sm leading-relaxed">{author.bio}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <aside class="lg:col-span-4 space-y-8">
+        <div class="sticky top-8 bg-slate-900 rounded-3xl p-8 text-white">
+          <h3 class="text-2xl font-bold mb-4 leading-tight">Ship to Pakistan Today</h3>
+          <p class="text-slate-400 mb-8">Get the best rates for Pak Cargo door-to-door delivery from Dubai.</p>
+          <a href={`https://wa.me/${settings?.ctaValue}`} class="block w-full text-center py-4 bg-green-600 hover:bg-green-700 font-bold rounded-xl transition-all mb-4">
+            WhatsApp Quote
+          </a>
+          <a href={`tel:${settings?.phone}`} class="block w-full text-center py-4 border border-slate-700 hover:bg-slate-800 font-bold rounded-xl transition-all">
+            Call Logistics Expert
+          </a>
+        </div>
+      </aside>
+    </div>
+  </article>
+
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+</BaseLayout>
