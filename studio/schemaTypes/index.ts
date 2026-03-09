@@ -6,7 +6,8 @@ import partner from './partner'
 import author from './author'
 import post from './post'
 import faqItem from './objects/faqItem'
-import homepage from './homepage';
+import homepage from './homepage'
+import contactChannel from './contactChannel'
 
 export const schemaTypes = [
   siteSettings,
@@ -18,4 +19,5 @@ export const schemaTypes = [
   post,
   faqItem,
   homepage,
+  contactChannel,
 ]

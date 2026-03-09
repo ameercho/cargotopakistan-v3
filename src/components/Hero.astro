@@ -1,26 +1,38 @@
 ---
-import { ShieldCheck, Truck, Clock } from 'lucide-react';
+import { sanityClient } from "sanity:client";
+import { ShieldCheck, Truck, Clock, Phone, MessageSquare } from 'lucide-react';
+
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 ---
 
-<section class="relative bg-white pt-16 pb-12 overflow-hidden">
+<section class="relative bg-white pt-10 md:pt-16 pb-12 overflow-hidden">
   <div class="max-w-7xl mx-auto px-6 lg:px-8">
     <div class="grid lg:grid-cols-2 gap-12 items-center">
       
       <div class="text-left">
-        <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+        <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
           Reliable <span class="text-blue-600">Door-to-Door</span> Cargo from Dubai to Pakistan
         </h1>
         <p class="text-lg text-slate-600 mb-8 max-w-lg leading-relaxed">
           Customs cleared, hassle-free shipping for household goods and documents. 
-          Trusted by thousands since 2025.
+          Trusted by thousands across the UAE since 2025.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a href="https://wa.me/YOUR_NUMBER" class="inline-flex items-center justify-center px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold text-lg rounded-full transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-            WhatsApp Us Now
+        <div class="flex flex-col sm:flex-row gap-4 mb-10">
+          <a 
+            href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`} 
+            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            <MessageSquare size={22} />
+            WhatsApp Now
           </a>
-          <a href="#rates" class="inline-flex items-center justify-center px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg rounded-full transition-all">
-            View Rates
+
+          <a 
+            href={`tel:${settings?.phone}`} 
+            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            <Phone size={22} />
+            Call Now
           </a>
         </div>
       </div>
@@ -28,42 +40,4 @@ import { ShieldCheck, Truck, Clock } from 'lucide-react';
       <div class="relative">
         <div class="rounded-3xl overflow-hidden shadow-2xl border-8 border-slate-50">
           <img 
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800" 
-            alt="Professional Logistics Team in Dubai"
-            class="w-full h-auto object-cover"
-          />
-        </div>
-        <div class="absolute -bottom-6 -left-6 bg-blue-600 text-white p-6 rounded-2xl shadow-xl hidden md:block">
-          <p class="text-2xl font-bold">100%</p>
-          <p class="text-xs uppercase tracking-widest opacity-80">Safe Delivery</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-20 border-t border-slate-100 pt-10">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="flex items-center gap-4 text-slate-700">
-          <ShieldCheck class="text-blue-600" size={32} />
-          <div>
-            <p class="font-bold">100% Secure</p>
-            <p class="text-sm text-slate-500">Fully insured shipments</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-4 text-slate-700">
-          <Truck class="text-blue-600" size={32} />
-          <div>
-            <p class="font-bold">Door Delivery</p>
-            <p class="text-sm text-slate-500">Every city in Pakistan</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-4 text-slate-700">
-          <Clock class="text-blue-600" size={32} />
-          <div>
-            <p class="font-bold">Customs Cleared</p>
-            <p class="text-sm text-slate-500">No hidden tax surprises</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+            src="

@@ -1,6 +1,6 @@
 ---
 import { sanityClient } from "sanity:client";
-import { Phone, MessageSquare, ChevronDown } from 'lucide-react';
+import { Phone, MessageSquare, ChevronDown, Menu } from 'lucide-react';
 import Logo from './Logo.astro';
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
@@ -8,9 +8,9 @@ const services = await sanityClient.fetch(`*[_type == "service"] | order(title a
 ---
 
 <header class="sticky top-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
-  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
     
-    <a href="/" class="hover:opacity-90 transition-opacity">
+    <a href="/" class="hover:opacity-90 transition-opacity w-32 md:w-auto">
       <Logo />
     </a>
 
@@ -35,15 +35,28 @@ const services = await sanityClient.fetch(`*[_type == "service"] | order(title a
       <a href="#rates" class="font-semibold text-slate-600 hover:text-blue-600">Rates</a>
     </nav>
 
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 md:gap-4">
+      <a href={`tel:${settings?.phone}`} class="md:hidden p-2.5 bg-blue-50 text-blue-600 rounded-full" aria-label="Call Us">
+        <Phone size={20} />
+      </a>
+
+      <a href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`} class="md:hidden p-2.5 bg-green-50 text-green-600 rounded-full" aria-label="WhatsApp Us">
+        <MessageSquare size={20} />
+      </a>
+
       <a href={`tel:${settings?.phone}`} class="hidden lg:flex items-center gap-2 font-bold text-slate-900">
-        <Phone size={18} class="text-blue-600" />
+        <Phone size={18} className="text-blue-600" />
         {settings?.phone}
       </a>
-      <a href={`https://wa.me/${settings?.ctaValue}`} class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2">
+      
+      <a href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`} class="hidden md:flex bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold items-center gap-2 hover:bg-green-700 transition-colors">
         <MessageSquare size={18} />
         WhatsApp
       </a>
+
+      <button class="md:hidden p-2 text-slate-600" id="mobile-menu-button">
+        <Menu size={24} />
+      </button>
     </div>
   </div>
 </header>

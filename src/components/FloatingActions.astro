@@ -1,0 +1,119 @@
+---
+import { MessageSquare, Phone, MapPin, Plus, X, Globe, MessageCircle } from 'lucide-react';
+import { sanityClient } from "sanity:client";
+
+/**
+ * Fetch all active contact channels.
+ * We now pull embedCode for Yeastar Live Chat snippets.
+ */
+const channels = await sanityClient.fetch(`
+  *[_type == "contactChannel" && isActive == true] | order(priority asc)
+`);
+
+const scriptChannels = channels.filter(c => c.embedCode);
+
+const getIcon = (platform) => {
+  switch (platform) {
+    case 'whatsapp': return MessageSquare;
+    case 'phone': 
+    case 'landline': return Phone;
+    case 'webrtc': return Globe;
+    case 'livechat': return MessageCircle;
+    default: return MessageSquare;
+  }
+};
+
+const getHref = (channel) => {
+  if (channel.platform === 'whatsapp') return `https://wa.me/${channel.value}`;
+  if (channel.platform === 'phone' || channel.platform === 'landline') return `tel:${channel.value}`;
+  if (channel.platform === 'livechat' || channel.platform === 'custom') return 'javascript:void(0)';
+  return channel.value;
+};
+
+const getColor = (platform) => {
+  switch (platform) {
+    case 'whatsapp': return 'bg-green-500';
+    case 'phone': return 'bg-blue-600';
+    case 'webrtc': return 'bg-purple-600';
+    case 'livechat': return 'bg-orange-500';
+    default: return 'bg-slate-700';
+  }
+};
+---
+
+<div class="fixed bottom-6 right-6 z-[999] flex flex-col items-end gap-3 print:hidden">
+  
+  <div id="fab-menu" class="flex flex-col items-end gap-3 mb-2 scale-0 opacity-0 origin-bottom transition-all duration-300 pointer-events-none">
+    
+    {channels.map((channel) => {
+      const IconComponent = getIcon(channel.platform);
+      return (
+        <a 
+          href={getHref(channel)} 
+          id={channel.platform === 'livechat' ? 'trigger-yeastar' : undefined}
+          target={channel.platform !== 'phone' && channel.platform !== 'landline' && channel.platform !== 'livechat' ? "_blank" : "_self"}
+          class="flex items-center gap-3 group"
+        >
+          <span class="bg-white text-slate-700 px-3 py-1.5 rounded-lg shadow-md text-sm font-bold border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            {channel.title}
+          </span>
+          <div class={`${getColor(channel.platform)} text-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform`}>
+            <IconComponent size={20} />
+          </div>
+        </a>
+      )
+    })}
+  </div>
+
+  <div class="relative group">
+    <div id="fab-pulse-1" class="absolute inset-0 rounded-full bg-blue-600 animate-ping opacity-20"></div>
+    <div id="fab-pulse-2" class="absolute inset-0 rounded-full bg-blue-600 animate-pulse opacity-40"></div>
+
+    <button 
+      id="fab-toggle"
+      class="relative bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 transition-all duration-300 flex items-center justify-center group"
+    >
+      <div id="plus-icon" class="transition-transform duration-300"><Plus size={28} /></div>
+      <div id="close-icon" class="absolute transition-transform duration-300 scale-0"><X size={28} /></div>
+    </button>
+  </div>
+</div>
+
+{scriptChannels.map((c) => (
+  <Fragment set:html={c.embedCode} />
+))}
+
+<script>
+  const toggleBtn = document.getElementById('fab-toggle');
+  const menu = document.getElementById('fab-menu');
+  const plusIcon = document.getElementById('plus-icon');
+  const closeIcon = document.getElementById('close-icon');
+  const yeastarBtn = document.getElementById('trigger-yeastar');
+
+  toggleBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu?.classList.toggle('scale-100');
+    menu?.classList.toggle('opacity-100');
+    menu?.classList.toggle('pointer-events-auto');
+    plusIcon?.classList.toggle('scale-0');
+    closeIcon?.classList.toggle('scale-100');
+  });
+
+  // Handle Yeastar Trigger specifically
+  yeastarBtn?.addEventListener('click', () => {
+    // Yeastar usually creates a widget with a specific class or ID
+    const widget = document.querySelector('.ys-live-chat-widget') as HTMLElement || 
+                   document.querySelector('iframe[id^="ys-live-chat"]') as HTMLElement;
+    if (widget) {
+        widget.click();
+        // Close menu after opening chat
+        toggleBtn?.click();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!toggleBtn?.contains(event.target as Node) && menu?.classList.contains('scale-100')) {
+        toggleBtn?.click();
+    }
+  });
+</script>

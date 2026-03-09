@@ -4,6 +4,7 @@ import { sanityClient } from "sanity:client";
 import { urlFor } from "../lib/sanity";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import FloatingActions from "../components/FloatingActions.astro"; // 1. Added Import
 
 interface Props {
   title?: string;
@@ -39,5 +40,8 @@ const finalDesc = description || settings?.description || "Reliable cargo and co
       <slot />
     </div>
     <Footer />
+
+    {/* 2. Added FloatingActions component here */}
+    <FloatingActions />
   </body>
 </html>
