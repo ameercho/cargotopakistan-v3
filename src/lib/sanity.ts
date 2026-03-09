@@ -1,9 +1,11 @@
-import { sanityClient } from "sanity:client";
-import imageUrlBuilder from "@sanity/image-url";
+import { sanityClient } from 'sanity:client';
+// UPDATED: Using the named export to resolve deprecation warning
+import { createImageUrlBuilder } from '@sanity/image-url';
 
-// This uses your existing configuration from astro.config.mjs
-const builder = imageUrlBuilder(sanityClient);
+// Use the new builder method
+const builder = createImageUrlBuilder(sanityClient);
 
 export function urlFor(source: any) {
+  // Ensure we return a valid builder object
   return builder.image(source);
 }
