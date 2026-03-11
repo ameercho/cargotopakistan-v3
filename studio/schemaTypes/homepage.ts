@@ -5,11 +5,42 @@ export default defineType({
   title: 'Homepage Content',
   type: 'document',
   groups: [
+    {name: 'seo', title: 'SEO & Meta Data'}, // Moved to top for priority
     {name: 'hero', title: 'Hero Section (Top)'},
     {name: 'content', title: 'Main Sections'},
-    {name: 'seo', title: 'SEO & Search'},
   ],
   fields: [
+    // --- SEO & META DATA OVERRIDES ---
+    defineField({
+      name: 'seoTitle',
+      title: 'Homepage SEO Title',
+      type: 'string',
+      group: 'seo',
+      description:
+        'Overrides the global title. Best for: "Cargo to Pakistan from Dubai & Abu Dhabi | PakCargo.ae"',
+      validation: (Rule) => Rule.max(60),
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'Homepage Meta Description',
+      type: 'text',
+      group: 'seo',
+      rows: 3,
+      description: 'Overrides the global description for the homepage.',
+      validation: (Rule) => Rule.min(120).max(160),
+    }),
+    defineField({
+      name: 'seoKeywords',
+      title: 'Homepage Specific Keywords',
+      type: 'array',
+      group: 'seo',
+      description: 'Add keywords specifically for the homepage ranking.',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+    }),
+
     // --- HERO SECTION ---
     defineField({
       name: 'heroTitle',
@@ -59,12 +90,12 @@ export default defineType({
       of: [{type: 'reference', to: [{type: 'partner'}]}],
     }),
 
-    // --- SEO & SNIPPETS ---
+    // --- GEO-OPTIMIZED CONTENT ---
     defineField({
       name: 'faqs',
       title: 'Homepage FAQs (GEO-Optimized)',
       type: 'array',
-      group: 'seo',
+      group: 'content', // Moved to content for better visual flow in Studio
       description: 'General questions to rank for broad UAE-Pakistan search terms.',
       of: [
         {
@@ -80,7 +111,7 @@ export default defineType({
       name: 'footerText',
       title: 'Footer SEO Text',
       type: 'text',
-      group: 'seo',
+      group: 'content',
       description: 'A small paragraph at the bottom of the page containing your main keywords.',
     }),
   ],

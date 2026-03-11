@@ -6,7 +6,7 @@ export default defineType({
   type: 'document',
   groups: [
     {name: 'seo', title: 'SEO & Meta Data'},
-    {name: 'navigation', title: 'Navigation (Menus)'}, // NEW: Global Menu Control
+    {name: 'navigation', title: 'Navigation (Menus)'},
     {name: 'business', title: 'Business Identity'},
     {name: 'contact', title: 'Global Contact & CTA'},
     {name: 'tracking', title: 'Tracking & Analytics'},
@@ -15,11 +15,19 @@ export default defineType({
   fields: [
     // --- SEO GROUP ---
     defineField({
+      name: 'siteUrl',
+      title: 'Production Site URL',
+      type: 'url',
+      group: 'seo',
+      description: 'The live URL (e.g., https://pakcargo.ae). Used for canonical links.',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: 'title',
       title: 'Global Site Title',
       type: 'string',
       group: 'seo',
-      description: 'The main title for Google (e.g., PakCargo.ae | Best Pakistan Cargo Service).',
+      description: 'The main title for Google search results.',
       validation: (Rule) => Rule.required().max(60),
     }),
     defineField({
@@ -35,38 +43,37 @@ export default defineType({
       title: 'Core Business Keywords',
       type: 'array',
       group: 'seo',
+      description: 'Add keywords and press Enter (e.g., Cargo to Pakistan, Door to door cargo).',
       of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
     }),
     defineField({
       name: 'ogImage',
       title: 'Social Sharing Image',
       type: 'image',
       group: 'seo',
+      options: {hotspot: true},
     }),
 
-    // --- NAVIGATION GROUP (The Best Practice for Scaling) ---
+    // --- NAVIGATION GROUP ---
     defineField({
       name: 'headerMenu',
       title: 'Header Navigation',
       type: 'array',
       group: 'navigation',
-      description: 'Main links shown at the top of the page.',
       of: [
         {
           type: 'object',
           name: 'navItem',
           fields: [
-            {
-              name: 'label',
-              title: 'Link Label',
-              type: 'string',
-              description: 'e.g., "All Services"',
-            },
+            {name: 'label', title: 'Link Label', type: 'string'},
             {
               name: 'link',
               title: 'URL Path',
               type: 'string',
-              description: 'e.g., "/services" or "/contact"',
+              description: 'e.g., /about or /services',
             },
             {name: 'isButton', title: 'Show as Button?', type: 'boolean', initialValue: false},
           ],
@@ -78,14 +85,12 @@ export default defineType({
       title: 'Footer Quick Links',
       type: 'array',
       group: 'navigation',
-      description: 'Informational links shown in the footer columns.',
       of: [
         {
           type: 'object',
-          name: 'footerLink',
           fields: [
-            {name: 'label', title: 'Link Label', type: 'string'},
-            {name: 'link', title: 'URL Path', type: 'string'},
+            {name: 'label', type: 'string'},
+            {name: 'link', type: 'string'},
           ],
         },
       ],
@@ -97,18 +102,24 @@ export default defineType({
       title: 'Google Tag Manager ID',
       type: 'string',
       group: 'tracking',
-      description: 'GTM-XXXXXXX',
+      placeholder: 'GTM-XXXXXXX',
     }),
     defineField({
       name: 'gaId',
       title: 'Google Analytics 4 ID',
       type: 'string',
       group: 'tracking',
-      description: 'G-XXXXXXX',
+      placeholder: 'G-XXXXXXX',
     }),
     defineField({
       name: 'siteVerificationCode',
       title: 'Google Search Console Verification',
+      type: 'string',
+      group: 'tracking',
+    }),
+    defineField({
+      name: 'semrushCode',
+      title: 'Semrush Verification Code',
       type: 'string',
       group: 'tracking',
     }),
@@ -119,7 +130,6 @@ export default defineType({
       title: 'Official Business Name',
       type: 'string',
       group: 'business',
-      initialValue: 'PakCargo.ae',
     }),
     defineField({
       name: 'address',
@@ -174,7 +184,26 @@ export default defineType({
       title: 'WhatsApp Number',
       type: 'string',
       group: 'contact',
-      description: 'Country code first, no plus sign (e.g., 971501234567).',
+      description: 'Example: 971501234567 (No plus sign).',
+    }),
+    defineField({
+      name: 'socialLinks',
+      title: 'Social Media Links',
+      type: 'array',
+      group: 'contact',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'platform',
+              type: 'string',
+              options: {list: ['Facebook', 'Instagram', 'LinkedIn', 'Twitter']},
+            },
+            {name: 'url', type: 'url'},
+          ],
+        },
+      ],
     }),
   ],
 })

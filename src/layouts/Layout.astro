@@ -12,14 +12,16 @@ interface Props {
   description?: string;
   ogImage?: any;
   canonicalUrl?: string;
+  keywords?: string[];
 }
 
-const { title, description, ogImage, canonicalUrl } = Astro.props;
+const { title, description, ogImage, canonicalUrl, keywords } = Astro.props;
 
-// 1. Fetching Global Settings - This makes the layout "Domain-Agnostic"
+// 1. Fetching Global Settings - Updated to include keywords and semrushCode
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
   title,
   description,
+  keywords,
   siteUrl,
   gtmId,
   gaId,
@@ -41,12 +43,19 @@ const siteBrand = settings?.businessName || 'PakCargo';
 const finalTitle = title
   ? `${title} | ${siteBrand}`
   : settings?.title || `${siteBrand} | Logistics Services`;
+
 const finalDesc =
   description ||
   settings?.description ||
   `Professional cargo and shipping services from UAE to Pakistan.`;
 
-// 3. Dynamic Canonical URL - Automatically adapts to whatever domain you are on
+// 3. Keywords Logic - Merges page-specific keywords with global ones
+const finalKeywords = keywords
+  ? keywords.join(', ')
+  : settings?.keywords?.join(', ') ||
+    'cargo to pakistan, dubai to pakistan cargo, courier services';
+
+// 4. Dynamic Canonical URL - Uses the new siteUrl field from Sanity
 const baseDomain = settings?.siteUrl || 'https://cargotopakistan.ae';
 const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
 ---
@@ -60,6 +69,7 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
 
     <title>{finalTitle}</title>
     <meta name="description" content={finalDesc} />
+    <meta name="keywords" content={finalKeywords} />
     <link rel="canonical" href={currentCanonical} />
 
     {
@@ -112,10 +122,13 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
     }
 
     <Header />
+
     <main class="flex-grow">
       <slot />
     </main>
+
     <Footer />
+
     <FloatingActions />
   </body>
 </html>
