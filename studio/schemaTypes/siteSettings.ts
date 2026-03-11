@@ -6,8 +6,9 @@ export default defineType({
   type: 'document',
   groups: [
     {name: 'seo', title: 'SEO & Meta Data'},
-    {name: 'contact', title: 'Global Contact & CTA'},
     {name: 'business', title: 'Business Identity'},
+    {name: 'contact', title: 'Global Contact & CTA'},
+    {name: 'tracking', title: 'Tracking & Analytics'}, // NEW: For GTM/GA4/Pixels
     {name: 'verification', title: 'Trust & Verification'},
   ],
   fields: [
@@ -34,8 +35,7 @@ export default defineType({
       title: 'Core Business Keywords',
       type: 'array',
       group: 'seo',
-      description:
-        'CRITICAL: Add the 10 keywords you listed here. These populate the Schema "knowsAbout" field.',
+      description: 'Populates the Schema "knowsAbout" field for search engine entity recognition.',
       of: [{type: 'string'}],
     }),
     defineField({
@@ -44,6 +44,36 @@ export default defineType({
       type: 'image',
       group: 'seo',
       description: 'Image shown on WhatsApp/Facebook (1200x630px).',
+    }),
+
+    // --- TRACKING & ANALYTICS (Expert Setup) ---
+    defineField({
+      name: 'gtmId',
+      title: 'Google Tag Manager ID',
+      type: 'string',
+      group: 'tracking',
+      description: 'Format: GTM-XXXXXXX',
+    }),
+    defineField({
+      name: 'gaId',
+      title: 'Google Analytics 4 ID',
+      type: 'string',
+      group: 'tracking',
+      description: 'Format: G-XXXXXXX',
+    }),
+    defineField({
+      name: 'siteVerificationCode',
+      title: 'Google Search Console Verification',
+      type: 'string',
+      group: 'tracking',
+      description: 'The code from the <meta> tag verification method.',
+    }),
+    defineField({
+      name: 'semrushCode',
+      title: 'Semrush Site Verification',
+      type: 'string',
+      group: 'tracking',
+      description: 'Verification code for Semrush site audit tools.',
     }),
 
     // --- BUSINESS IDENTITY GROUP ---
@@ -100,7 +130,7 @@ export default defineType({
       },
     }),
 
-    // --- TRUST & VERIFICATION (The SEO Secret Sauce) ---
+    // --- TRUST & VERIFICATION ---
     defineField({
       name: 'tradeLicense',
       title: 'UAE Trade License Number',
@@ -113,8 +143,7 @@ export default defineType({
       title: 'Business Hours',
       type: 'string',
       group: 'verification',
-      description: 'e.g., Mo-Sa 09:00-21:00',
-      initialValue: 'Mo-Su 00:00-24:00', // 24/7 is common for cargo
+      initialValue: 'Mo-Su 00:00-24:00',
     }),
     defineField({
       name: 'socialLinks',
@@ -143,7 +172,6 @@ export default defineType({
       title: 'Global Announcement',
       type: 'string',
       group: 'contact',
-      description: 'e.g., "Special Ramadan Rates Now Live!"',
     }),
   ],
 })

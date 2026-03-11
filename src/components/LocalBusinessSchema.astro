@@ -1,0 +1,51 @@
+---
+const { settings } = Astro.props;
+
+// EXPERT FIX: We use an array for @type to ensure Google validation
+// while keeping the specific LogisticsBusiness classification.
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': ['LocalBusiness', 'LogisticsBusiness'],
+  '@id': 'https://pakcargo.ae/#organization',
+  name: settings?.businessName || 'PakCargo.ae',
+  legalName: settings?.legalName,
+  url: 'https://pakcargo.ae',
+  logo: 'https://pakcargo.ae/favicon.svg',
+  image: settings?.ogImage ? settings.ogImage.asset.url : 'https://pakcargo.ae/og-default.jpg',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: settings?.address,
+    addressLocality: 'Dubai',
+    addressRegion: 'Dubai',
+    addressCountry: 'AE',
+  },
+  geo: settings?.geoCoordinates
+    ? {
+        '@type': 'GeoCoordinates',
+        latitude: settings.geoCoordinates.lat,
+        longitude: settings.geoCoordinates.lng,
+      }
+    : undefined,
+  telephone: settings?.phone,
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      telephone: settings?.whatsappNumber,
+      contactType: 'customer service',
+      availableLanguage: ['en', 'ur', 'hi'],
+    },
+  ],
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '00:00',
+      closes: '23:59',
+    },
+  ],
+  sameAs: settings?.socialLinks || [],
+  identifier: settings?.tradeLicense,
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

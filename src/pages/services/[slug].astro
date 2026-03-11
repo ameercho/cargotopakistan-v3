@@ -1,9 +1,9 @@
 ---
-import { sanityClient } from "sanity:client";
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import { urlFor } from "../../lib/sanity";
-import { PortableText } from "astro-portabletext";
-import FaqSection from "../../components/FaqSection.astro"; 
+import { sanityClient } from 'sanity:client';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { urlFor } from '../../lib/sanity';
+import PortableText from '../../components/PortableText.astro';
+import FaqSection from '../../components/FaqSection.astro';
 import { Ship, Plane, FileText, Home, Package, Truck, MapPin, CheckCircle2 } from 'lucide-react';
 
 export async function getStaticPaths() {
@@ -15,7 +15,8 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const service = await sanityClient.fetch(`
+const service = await sanityClient.fetch(
+  `
   *[_type == "service" && slug.current == $slug][0]{
     ...,
     faqs[] {
@@ -25,7 +26,9 @@ const service = await sanityClient.fetch(`
       lastReviewed
     }
   }
-`, { slug });
+`,
+  { slug }
+);
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
@@ -35,94 +38,121 @@ const iconMap = {
   'file-text': FileText,
   home: Home,
   package: Package,
-  truck: Truck
+  truck: Truck,
 };
 const IconComponent = iconMap[service.icon] || Package;
 
 // Schema logic remains the same as previous expert step...
 const combinedSchema = {
-  "@context": "https://schema.org",
-  "@graph": [
+  '@context': 'https://schema.org',
+  '@graph': [
     {
-      "@type": "Service",
-      "name": service.title,
-      "description": service.description || service.metaDescription,
-      "serviceType": service.serviceType || "FreightTransportService",
-      "provider": { "@id": "https://pakcargo.ae/#organization" },
-      "areaServed": service.serviceableAreas?.map(area => ({ "@type": "Place", "name": area })) || [{ "@type": "Country", "name": "United Arab Emirates" }],
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "AED",
-        "price": service.startingPrice || "0"
-      }
+      '@type': 'Service',
+      name: service.title,
+      description: service.description || service.metaDescription,
+      serviceType: service.serviceType || 'FreightTransportService',
+      provider: { '@id': 'https://pakcargo.ae/#organization' },
+      areaServed: service.serviceableAreas?.map((area) => ({ '@type': 'Place', name: area })) || [
+        { '@type': 'Country', name: 'United Arab Emirates' },
+      ],
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'AED',
+        price: service.startingPrice || '0',
+      },
     },
     {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://pakcargo.ae" },
-        { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://pakcargo.ae/services" },
-        { "@type": "ListItem", "position": 3, "name": service.title, "item": `https://pakcargo.ae/services/${service.slug.current}` }
-      ]
-    }
-  ]
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://pakcargo.ae' },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Services',
+          item: 'https://pakcargo.ae/services',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: service.title,
+          item: `https://pakcargo.ae/services/${service.slug.current}`,
+        },
+      ],
+    },
+  ],
 };
 ---
 
-<BaseLayout 
+<BaseLayout
   title={service.seoTitle || `${service.title} | PakCargo.ae`}
   description={service.metaDescription || service.description}
 >
   <main class="bg-slate-50 min-h-screen">
-    
     <section class="relative h-[50vh] min-h-[400px] flex items-center overflow-hidden bg-slate-900">
-      {service.mainImage && (
-        <img 
-          src={urlFor(service.mainImage).width(1600).url()} 
-          alt={service.title}
-          class="absolute inset-0 w-full h-full object-cover opacity-40"
-        />
-      )}
-      <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
-      
+      {
+        service.mainImage && (
+          <img
+            src={urlFor(service.mainImage).width(1600).url()}
+            alt={service.title}
+            class="absolute inset-0 w-full h-full object-cover opacity-40"
+          />
+        )
+      }
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent">
+      </div>
+
       <div class="relative z-10 max-w-6xl mx-auto px-6 w-full">
         <nav class="text-blue-400 text-sm mb-6 flex items-center gap-2 font-medium">
-          <a href="/" class="hover:text-white transition-colors">Home</a> 
+          <a href="/" class="hover:text-white transition-colors">Home</a>
           <span>/</span>
-          <a href="/services" class="hover:text-white transition-colors">Services</a> 
+          <a href="/services" class="hover:text-white transition-colors">Services</a>
           <span>/</span>
           <span class="text-white">{service.title}</span>
         </nav>
-        
-        <div class="inline-flex items-center gap-3 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-sm font-bold mb-6 backdrop-blur-md">
+
+        <div
+          class="inline-flex items-center gap-3 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-sm font-bold mb-6 backdrop-blur-md"
+        >
           <IconComponent size={18} />
           <span>Professional Logistics</span>
         </div>
-        
+
         <h1 class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl">
           {service.seoTitle || service.title}
         </h1>
-        
-        {service.startingPrice && (
-            <p class="text-2xl text-blue-400 font-bold">Rates starting from AED {service.startingPrice}</p>
-        )}
+
+        {
+          service.startingPrice && (
+            <p class="text-2xl text-blue-400 font-bold">
+              Rates starting from AED {service.startingPrice}
+            </p>
+          )
+        }
       </div>
     </section>
 
     <div class="max-w-6xl mx-auto px-6 -mt-20 relative z-20 pb-20">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         <div class="lg:col-span-2 space-y-8">
-          
-          <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
-            <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">Reliable {service.title} Solution</h2>
-            <div class="prose prose-lg prose-slate max-w-none 
-              prose-headings:font-bold prose-headings:text-slate-900 
-              prose-p:text-slate-600 prose-strong:text-blue-600 prose-li:text-slate-600">
+          <div
+            class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
+          >
+            <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">
+              Reliable {service.title} Solution
+            </h2>
+            <div
+              class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
+            >
+              <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">
+                Reliable {service.title} Solution
+              </h2>
               <PortableText value={service.details} />
             </div>
           </div>
+        </div>
 
-          {service.serviceableAreas && service.serviceableAreas.length > 0 && (
+        {
+          service.serviceableAreas && service.serviceableAreas.length > 0 && (
             <div class="bg-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
               <div class="flex items-center gap-4 mb-8">
                 <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
@@ -133,7 +163,7 @@ const combinedSchema = {
                   <p class="text-blue-100">Direct {service.title} pickup from your doorstep</p>
                 </div>
               </div>
-              
+
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {service.serviceableAreas.map((area) => (
                   <div class="flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
@@ -143,44 +173,53 @@ const combinedSchema = {
                 ))}
               </div>
             </div>
-          )}
+          )
+        }
 
-          {service.faqs && (
+        {
+          service.faqs && (
             <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
               <h3 class="text-3xl font-bold text-slate-900 mb-10">Frequently Asked Questions</h3>
               <FaqSection faqs={service.faqs} />
             </div>
-          )}
-        </div>
+          )
+        }
+      </div>
 
-        <div class="space-y-6">
-          <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-8">
-            <h3 class="text-xl font-bold text-slate-900 mb-6">Service Benefits</h3>
-            <ul class="space-y-4 mb-8">
-              {service.keyFeatures?.map((feature) => (
+      <div class="space-y-6">
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-8">
+          <h3 class="text-xl font-bold text-slate-900 mb-6">Service Benefits</h3>
+          <ul class="space-y-4 mb-8">
+            {
+              service.keyFeatures?.map((feature) => (
                 <li class="flex items-start gap-3">
                   <div class="mt-1 bg-green-100 text-green-600 rounded-full p-1">
                     <CheckCircle2 size={16} />
                   </div>
                   <span class="text-slate-600 font-medium">{feature}</span>
                 </li>
-              ))}
-            </ul>
+              ))
+            }
+          </ul>
 
-            <div class="space-y-4">
-              <a href={`https://wa.me/${settings?.ctaValue}`} class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200">
-                <span class="text-lg">WhatsApp Quote</span>
-              </a>
-              <a href={`tel:${settings?.phone}`} class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                <span>Call Specialist</span>
-              </a>
-            </div>
+          <div class="space-y-4">
+            <a
+              href={`https://wa.me/${settings?.ctaValue}`}
+              class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200"
+            >
+              <span class="text-lg">WhatsApp Quote</span>
+            </a>
+            <a
+              href={`tel:${settings?.phone}`}
+              class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+            >
+              <span>Call Specialist</span>
+            </a>
           </div>
         </div>
-
       </div>
     </div>
   </main>
-
-  <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} />
 </BaseLayout>
+
+<script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} />

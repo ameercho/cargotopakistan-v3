@@ -1,0 +1,59 @@
+---
+import { PortableText as PortableTextInternal } from "astro-portabletext";
+import { urlFor } from "../lib/sanity";
+import { AlertTriangle } from "lucide-react";
+
+const { value } = Astro.props;
+
+const components = {
+  type: {
+    // This handles images dropped into the middle of your text
+    image: ({ node }: any) => {
+      const imageUrl = urlFor(node).width(800).url();
+      return (
+        <figure class="my-8 overflow-hidden rounded-3xl border border-slate-200 shadow-lg">
+          <img 
+            src={imageUrl} 
+            alt={node.alt || "Pakistan Cargo Service Details"} 
+            class="w-full h-auto object-cover"
+          />
+          {node.alt && (
+            <figcaption class="bg-slate-50 px-4 py-2 text-sm text-slate-500 italic border-t border-slate-100">
+              {node.alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
+  },
+  block: {
+    // This turns H4 into our "Customs Alert" Warning Box
+    h4: ({ node, children }: any) => (
+      <div class="my-8 p-6 bg-red-50 border-l-8 border-red-500 rounded-r-2xl shadow-sm group">
+        <div class="flex items-center gap-3 text-red-700 mb-2">
+          <AlertTriangle size={24} class="animate-pulse" />
+          <strong class="text-xl uppercase tracking-wider">Customs Alert / Important Notice</strong>
+        </div>
+        <div class="text-red-900 font-medium leading-relaxed">
+          <slot />
+        </div>
+      </div>
+    ),
+    // Standard Heading Styles for SEO
+    h2: ({ node }: any) => <h2 class="text-3xl font-bold text-slate-900 mt-12 mb-6 italic border-b pb-2 border-slate-100"><slot /></h2>,
+    h3: ({ node }: any) => <h3 class="text-2xl font-bold text-slate-800 mt-8 mb-4"><slot /></h3>,
+    blockquote: ({ node }: any) => (
+      <blockquote class="border-l-4 border-blue-500 pl-6 my-8 py-2 bg-blue-50/50 rounded-r-xl text-slate-700 italic text-xl">
+        <slot />
+      </blockquote>
+    ),
+  },
+};
+---
+
+<div class="prose prose-lg prose-slate max-w-none 
+  prose-headings:font-bold prose-headings:text-slate-900 
+  prose-p:text-slate-600 prose-p:leading-relaxed 
+  prose-strong:text-blue-600 prose-li:text-slate-600">
+  <PortableTextInternal value={value} components={components} />
+</div>

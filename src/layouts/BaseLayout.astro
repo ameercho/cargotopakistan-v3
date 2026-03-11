@@ -1,22 +1,48 @@
 ---
 import '../styles/global.css';
-import { sanityClient } from "sanity:client";
-import { urlFor } from "../lib/sanity";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import FloatingActions from "../components/FloatingActions.astro";
+import { sanityClient } from 'sanity:client';
+import { urlFor } from '../lib/sanity';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FloatingActions from '../components/FloatingActions.astro';
+// We will create this component in the next step
+import LocalBusinessSchema from '../components/LocalBusinessSchema.astro';
 
 interface Props {
   title?: string;
   description?: string;
   ogImage?: any;
+  canonicalUrl?: string;
 }
 
-const { title, description, ogImage } = Astro.props;
-const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+const { title, description, ogImage, canonicalUrl } = Astro.props;
 
-const finalTitle = title || settings?.title || "PakCargo.ae | Pakistan Cargo Services";
-const finalDesc = description || settings?.description || "Reliable cargo and courier services from Dubai to Pakistan.";
+// EXPERT UPDATE: Expanded fetch to include Business Identity & Trust signals
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
+  title,
+  description,
+  gtmId,
+  gaId,
+  siteVerificationCode,
+  semrushCode,
+  businessName,
+  legalName,
+  address,
+  geoCoordinates,
+  phone,
+  whatsappNumber,
+  tradeLicense,
+  openingHours,
+  socialLinks
+}`);
+
+const finalTitle = title || settings?.title || 'PakCargo.ae | Pakistan Cargo Services';
+const finalDesc =
+  description ||
+  settings?.description ||
+  'Reliable cargo and courier services from Dubai to Pakistan.';
+const siteUrl = 'https://pakcargo.ae';
+const currentCanonical = canonicalUrl || `${siteUrl}${Astro.url.pathname}`;
 ---
 
 <html lang="en" class="scroll-smooth">
@@ -25,24 +51,73 @@ const finalDesc = description || settings?.description || "Reliable cargo and co
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    
+
     <title>{finalTitle}</title>
     <meta name="description" content={finalDesc} />
-    <link rel="canonical" href="https://pakcargo.ae" />
+    <link rel="canonical" href={currentCanonical} />
+
+    {
+      settings?.siteVerificationCode && (
+        <meta name="google-site-verification" content={settings.siteVerificationCode} />
+      )
+    }
+    {
+      settings?.semrushCode && (
+        <meta name="semrush-site-verification" content={settings.semrushCode} />
+      )
+    }
 
     <meta property="og:title" content={finalTitle} />
     <meta property="og:description" content={finalDesc} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={currentCanonical} />
     {ogImage && <meta property="og:image" content={urlFor(ogImage).width(1200).url()} />}
+
+    <LocalBusinessSchema settings={settings} />
+
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () {
+        dataLayer.push(arguments);
+      };
+    </script>
+
+    {
+      settings?.gtmId && (
+        <script
+          type="text/partytown"
+          is:inline
+          set:html={`
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','${settings.gtmId}');
+      `}
+        />
+      )
+    }
   </head>
+
   <body class="bg-white min-h-screen font-sans antialiased overflow-x-hidden flex flex-col">
+    {
+      settings?.gtmId && (
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${settings.gtmId}`}
+            height="0"
+            width="0"
+            style="display:none;visibility:hidden"
+          />
+        </noscript>
+      )
+    }
+
     <Header />
-    
     <main class="flex-grow">
       <slot />
     </main>
-
     <Footer />
-
     <FloatingActions />
   </body>
 </html>
