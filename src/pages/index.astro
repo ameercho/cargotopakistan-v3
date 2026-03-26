@@ -11,10 +11,9 @@ import PartnerLogos from '../components/PartnerLogos.astro';
 import FaqSection from '../components/FaqSection.astro';
 import { MapPin } from 'lucide-react';
 
-// 1. Optimized GROQ Fetching
+// 1. Fetch settings and Homepage data
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
-// Fetch Homepage data including our new SEO override fields
 const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
   ...,
   featuredServices[]->,
@@ -25,37 +24,31 @@ const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
     atomicAnswer,
     detailedAnswer,
     lastReviewed
-  },
-  seoTitle,
-  seoDescription,
-  seoKeywords
+  }
 }`);
 
-const services =
-  homeData?.featuredServices ||
-  (await sanityClient.fetch(`*[_type == "service"] | order(order asc)`));
+// 2. FIX: Ensure all services show if none are specifically "featured"
+let services = homeData?.featuredServices;
+if (!services || services.length === 0) {
+  services = await sanityClient.fetch(`*[_type == "service"] | order(order asc)`);
+}
+
 const rates = await sanityClient.fetch(`*[_type == "rateCard"] | order(order asc)`);
 const trustData =
   homeData?.featuredTrustPoints || (await sanityClient.fetch(`*[_type == "trustPoints"][0]`));
 const partners = homeData?.featuredPartners || (await sanityClient.fetch(`*[_type == "partner"]`));
-
 const serviceAreas = settings?.mainServiceAreas || ['Dubai', 'Abu Dhabi', 'Sharjah'];
+const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
 
-// 2. Advanced JSON-LD Schema
+// 3. Advanced JSON-LD Schema
 const businessSchema = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'LogisticsCompany',
-      '@id': `${settings?.siteUrl || 'https://pakcargo.ae'}/#organization`,
-      name: settings?.businessName || 'PakCargo.ae',
-      legalName: settings?.legalName,
-      taxID: settings?.tradeLicense,
-      url: settings?.siteUrl || 'https://pakcargo.ae',
-      logo: `${settings?.siteUrl || 'https://pakcargo.ae'}/favicon.svg`,
-      image: settings?.ogImage
-        ? urlFor(settings.ogImage).width(1200).url()
-        : `${settings?.siteUrl || 'https://pakcargo.ae'}/og-image.jpg`,
+      '@id': `${baseUrl}/#organization`,
+      name: settings?.businessName || 'Cargo to Pakistan',
+      url: baseUrl,
       telephone: settings?.phone,
       address: {
         '@type': 'PostalAddress',
@@ -63,47 +56,26 @@ const businessSchema = {
         addressLocality: 'Dubai',
         addressCountry: 'AE',
       },
-      geo: settings?.geoCoordinates
-        ? {
-            '@type': 'GeoCoordinates',
-            latitude: settings.geoCoordinates.lat,
-            longitude: settings.geoCoordinates.lng,
-          }
-        : undefined,
       areaServed: [
         ...serviceAreas.map((city) => ({ '@type': 'City', name: city })),
         { '@type': 'Country', name: 'Pakistan' },
       ],
-      knowsAbout: homeData?.seoKeywords ||
-        settings?.keywords || ['pakistan cargo', 'cargo to pakistan'],
     },
   ],
 };
-
-const faqSchema = homeData?.faqs
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: homeData.faqs.map((faq) => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: { '@type': 'Answer', text: faq.atomicAnswer || faq.answer },
-      })),
-    }
-  : null;
 ---
 
 <Layout
-  title={homeData?.seoTitle}
-  description={homeData?.seoDescription}
-  keywords={homeData?.seoKeywords}
+  title={homeData?.seoTitle || settings?.title}
+  description={homeData?.seoDescription || settings?.description}
+  footerSeoText={homeData?.footerSeoText}
 >
-  <script type="application/ld+json" set:html={JSON.stringify(businessSchema)} />
-  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+  <script type="application/ld+json" set:html={JSON.stringify(businessSchema)} slot="head" />
 
   <Hero title={homeData?.heroTitle} subtitle={homeData?.heroSubtitle} />
 
   <main>
+    {/* This will now receive the full list of services */}
     <ServiceSection services={services} />
 
     {trustData && <TrustSection trustData={trustData} />}
@@ -112,7 +84,7 @@ const faqSchema = homeData?.faqs
       <div class="max-w-7xl mx-auto px-6 text-center">
         <h2 class="text-4xl font-black text-slate-900 mb-4 italic">Competitive Shipping Rates</h2>
         <p class="text-slate-600 text-lg mb-12">
-          Verified <strong>pak cargo</strong> pricing for {new Date().getFullYear()} shipments.
+          Verified shipping pricing for {new Date().getFullYear()} shipments from UAE to Pakistan.
         </p>
         <PriceGrid rates={rates} />
       </div>
@@ -167,7 +139,7 @@ const faqSchema = homeData?.faqs
             <div class="text-center mb-16">
               <h2 class="text-4xl font-black text-slate-900 mb-4">Logistics Intelligence</h2>
               <p class="text-slate-500 text-lg">
-                Essential facts for your <strong>pakistan cargo</strong> shipment.
+                Essential facts for your UAE to Pakistan cargo shipment.
               </p>
             </div>
             <FaqSection faqs={homeData.faqs} />

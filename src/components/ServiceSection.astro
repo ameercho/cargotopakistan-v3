@@ -1,8 +1,7 @@
 ---
-const { services } = Astro.props;
+const { services = [] } = Astro.props;
 import { Ship, Plane, FileText, Home, Package, Truck, ShieldCheck, MapPin } from 'lucide-react';
 
-// Map the icon strings from Sanity to Lucide Components
 const iconMap = {
   ship: Ship,
   plane: Plane,
@@ -11,75 +10,86 @@ const iconMap = {
   package: Package,
   truck: Truck,
   shield: ShieldCheck,
-  map: MapPin
+  map: MapPin,
 };
 
-// Sort services by the 'order' field we added to Sanity
-const sortedServices = [...services].sort((a, b) => (a.order || 99) - (b.order || 99));
+// Ensure services is an array before sorting
+const sortedServices =
+  services && services.length > 0
+    ? [...services].sort((a, b) => (a.order || 99) - (b.order || 99))
+    : [];
 ---
 
 <section class="py-24 bg-white overflow-hidden">
   <div class="max-w-7xl mx-auto px-6">
     <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
       <div class="max-w-3xl">
-        <h2 class="text-blue-600 font-bold uppercase tracking-[0.2em] text-sm mb-4">Core Logistics Operations</h2>
+        <h2 class="text-blue-600 font-bold uppercase tracking-[0.2em] text-sm mb-4">
+          Core Logistics Operations
+        </h2>
         <p class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
           Professional <span class="text-blue-600">Pakistan Cargo</span> & Pak Cargo Services
         </p>
       </div>
-      <p class="text-slate-500 font-medium max-w-sm border-l-2 border-blue-600 pl-6 hidden md:block">
+      <p
+        class="text-slate-500 font-medium max-w-sm border-l-2 border-blue-600 pl-6 hidden md:block"
+      >
         Reliable cargo to Pakistan from Dubai with 100% door-to-door coverage across every city.
       </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-      {sortedServices.map((service) => {
-        const IconComponent = iconMap[service.icon] || Package;
-        return (
-          <article class="group relative flex flex-col p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-500">
-            <div class="flex justify-between items-start mb-8">
-              <div class="p-4 bg-white text-blue-600 rounded-2xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <IconComponent size={36} strokeWidth={1.5} />
+      {
+        sortedServices.map((service, index) => {
+          const IconComponent = iconMap[service.icon] || Package;
+          return (
+            <article class="group relative flex flex-col p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-500">
+              <div class="flex justify-between items-start mb-8">
+                <div class="p-4 bg-white text-blue-600 rounded-2xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <IconComponent size={36} strokeWidth={1.5} />
+                </div>
+                <span class="text-slate-300 font-black text-5xl opacity-20 group-hover:opacity-10 transition-opacity">
+                  0{index + 1}
+                </span>
               </div>
-              <span class="text-slate-300 font-black text-5xl opacity-20 group-hover:opacity-10 transition-opacity">
-                0{(sortedServices.indexOf(service) + 1)}
-              </span>
-            </div>
-            
-            <h3 class="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
-              {service.title}
-            </h3>
-            
-            <p class="text-slate-600 mb-8 leading-relaxed line-clamp-3">
-              {service.description}
-            </p>
 
-            {/* SEO FEATURE LIST: Added from our schema update */}
-            {service.keyFeatures && (
-              <ul class="mb-10 space-y-3 flex-grow">
-                {service.keyFeatures.slice(0, 3).map((feature) => (
-                  <li class="flex items-center text-sm font-semibold text-slate-700">
-                    <span class="w-1.5 h-1.5 bg-blue-600 rounded-full mr-3"></span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            )}
-            
-            <div class="mt-auto pt-6 border-t border-slate-100">
-              <a 
-                href={`/services/${service.slug.current}`} 
-                class="inline-flex items-center font-black text-xs uppercase tracking-widest text-blue-600 group-hover:gap-4 transition-all"
-              >
-                View Service Details
-                <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-            </div>
-          </article>
-        )
-      })}
+              <h3 class="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
+                {service.title}
+              </h3>
+
+              <p class="text-slate-600 mb-8 leading-relaxed line-clamp-3">{service.description}</p>
+
+              {service.keyFeatures && service.keyFeatures.length > 0 && (
+                <ul class="mb-10 space-y-3 flex-grow">
+                  {service.keyFeatures.slice(0, 3).map((feature) => (
+                    <li class="flex items-center text-sm font-semibold text-slate-700">
+                      <span class="w-1.5 h-1.5 bg-blue-600 rounded-full mr-3" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div class="mt-auto pt-6 border-t border-slate-100">
+                <a
+                  href={`/services/${service.slug?.current}`}
+                  class="inline-flex items-center font-black text-xs uppercase tracking-widest text-blue-600 group-hover:gap-4 transition-all"
+                >
+                  View Service Details
+                  <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </article>
+          );
+        })
+      }
     </div>
   </div>
 </section>

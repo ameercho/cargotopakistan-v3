@@ -5,8 +5,9 @@ import {schemaTypes} from './schemaTypes'
 
 export default defineConfig({
   name: 'default',
-  title: 'PakCargo Admin',
-  projectId: '9volnp47',
+  // Updated Title for your new domain
+  title: 'CargoToPakistan Admin',
+  projectId: 'vx91r8qj',
   dataset: 'production',
 
   plugins: [
@@ -16,16 +17,22 @@ export default defineConfig({
           .title('Website Content')
           .items([
             // PINNED: About Us Page
-            S.listItem().title('About Us Page').id('aboutPage').child(
-              S.document().schemaType('page').documentId('about-us'), // Fixed ID for fetching
-            ),
+            S.listItem()
+              .title('About Us Page')
+              .id('aboutPage')
+              .child(
+                S.document().schemaType('service').documentId('about-us')
+              ),
             // PINNED: Contact Page
-            S.listItem().title('Contact Page').id('contactPage').child(
-              S.document().schemaType('page').documentId('contact'), // Fixed ID for fetching
-            ),
+            S.listItem()
+              .title('Contact Page')
+              .id('contactPage')
+              .child(
+                S.document().schemaType('service').documentId('contact')
+              ),
             S.divider(),
-            // All other documents (Blog posts, etc.)
-            ...S.documentTypeListItems().filter((item) => !['page'].includes(item.getId()!)),
+            // Automatically list everything else (Services, Rate Cards, Partners)
+            ...S.documentTypeListItems(),
           ]),
     }),
     visionTool(),

@@ -3,7 +3,7 @@
  * PROFESSIONAL LOGO COMPONENT
  * Focused on a clean, transparent, high-visibility design.
  */
- import { Ship } from 'lucide-react';
+import { Ship } from 'lucide-react';
 
 interface Props {
   // Option for using the logo on Light (Header) vs Dark (Footer) backgrounds.
@@ -13,31 +13,20 @@ interface Props {
 const { variant = 'light' } = Astro.props;
 
 // Logic to switch ONLY the component colors based on the variant
-const iconColor = variant === 'light' 
-  ? "text-slate-900" 
-  : "text-white";
+const iconColor = variant === 'light' ? 'text-slate-900' : 'text-white';
 
-const textMainColor = variant === 'light'
-  ? "text-slate-900"
-  : "text-white";
+const textMainColor = variant === 'light' ? 'text-slate-900' : 'text-white';
 ---
 
 <div class="flex items-center gap-2 group cursor-pointer select-none">
-  <div class="p-1 md:p-1.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-    <Ship 
-      class:list={[
-        "w-5 h-5 md:w-6 md:h-6", 
-        iconColor
-      ]} 
-      strokeWidth={2.5}
-    />
+  <div
+    class="p-1 md:p-1.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+  >
+    <Ship class:list={['w-5 h-5 md:w-6 md:h-6', iconColor]} strokeWidth={2.5} />
   </div>
 
-  <span class:list={[
-    "text-2xl font-black tracking-tight",
-    textMainColor
-  ]}>
-    PakCargo<span class="text-blue-600">.ae</span>
+  <span class:list={['text-2xl font-black tracking-tight', textMainColor]}>
+    <span class="text-green-600">Cargo</span> to Pakistan
   </span>
 </div>
 

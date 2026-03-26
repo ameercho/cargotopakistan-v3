@@ -16,21 +16,19 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
 const service = await sanityClient.fetch(
   `*[_type == "service" && slug.current == $slug][0]{
     ...,
     rateTable,
     faqs[] {
       question,
-      atomicAnswer,
-      detailedAnswer,
-      lastReviewed
+      answer
     }
   }`,
   { slug }
 );
-
-const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
 const iconMap = {
   ship: Ship,
@@ -42,14 +40,17 @@ const iconMap = {
 };
 const IconComponent = iconMap[service.icon] || Package;
 
-// Prepare FAQ Items for Unified Schema
+// Use the dynamic domain from Site Settings
+const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
+
+// Prepare FAQ Items
 const faqSchemaItems =
   service.faqs?.map((faq) => ({
     '@type': 'Question',
     name: faq.question,
     acceptedAnswer: {
       '@type': 'Answer',
-      text: faq.atomicAnswer || 'Contact us for detailed information.',
+      text: faq.answer || 'Contact us for detailed information.',
     },
   })) || [];
 
@@ -59,9 +60,9 @@ const combinedSchema = {
     {
       '@type': 'Service',
       name: service.title,
-      description: service.description || service.metaDescription,
+      description: service.metaDescription || service.description,
       serviceType: service.serviceType || 'FreightTransportService',
-      provider: { '@id': 'https://pakcargo.ae/#organization' },
+      provider: { '@id': `${baseUrl}/#organization` },
       areaServed: service.serviceableAreas?.map((area) => ({ '@type': 'Place', name: area })) || [
         { '@type': 'Country', name: 'United Arab Emirates' },
       ],
@@ -82,18 +83,18 @@ const combinedSchema = {
     {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://pakcargo.ae' },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Services',
-          item: 'https://pakcargo.ae/services',
+          item: `${baseUrl}/services`,
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: service.title,
-          item: `https://pakcargo.ae/services/${service.slug.current}`,
+          item: `${baseUrl}/services/${service.slug.current}`,
         },
       ],
     },
@@ -102,14 +103,14 @@ const combinedSchema = {
 ---
 
 <Layout
-  title={service.seoTitle || `${service.title} | PakCargo.ae`}
+  title={service.seoTitle || `${service.title} | ${settings?.title || 'Cargo to Pakistan'}`}
   description={service.metaDescription || service.description}
   ogImage={service.mainImage}
 >
   <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 
   <main class="bg-slate-50 min-h-screen">
-    <section class="relative h-[50vh] min-h-[400px] flex items-center overflow-hidden bg-slate-900">
+    <section class="relative h-[50vh] min-h-[450px] flex items-center overflow-hidden bg-slate-900">
       {
         service.mainImage && (
           <img
@@ -138,107 +139,109 @@ const combinedSchema = {
           <span>Professional Logistics</span>
         </div>
 
-        <h1 class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl">
-          {service.seoTitle || service.title}
+        <h1
+          class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl leading-tight"
+        >
+          {service.heroTitle || service.title}
         </h1>
 
         {
-          service.startingPrice && (
-            <p class="text-2xl text-blue-400 font-bold">
-              Rates starting from AED {service.startingPrice}
+          service.heroSubtitle ? (
+            <p class="text-xl md:text-2xl text-slate-300 max-w-2xl font-medium leading-relaxed">
+              {service.heroSubtitle}
             </p>
+          ) : (
+            service.startingPrice && (
+              <p class="text-2xl text-blue-400 font-bold">
+                Rates starting from AED {service.startingPrice}
+              </p>
+            )
           )
         }
       </div>
     </section>
 
     <div class="max-w-6xl mx-auto px-6 -mt-20 relative z-20 pb-20">
-      <div class="lg:col-span-2 space-y-8">
-        <div
-          class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
-        >
-          <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">
-            Reliable {service.title} Solution
-          </h2>
-          <PortableText value={service.details} />
-
-          // ... inside your HTML template
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8">
           <div
             class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
           >
             <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">
               Reliable {service.title} Solution
             </h2>
-            <PortableText value={service.details} />
+            <div class="prose prose-slate prose-lg max-w-none mb-10">
+              <PortableText value={service.details} />
+            </div>
 
             <RatesTable rates={service.rateTable} serviceTitle={service.title} />
           </div>
+
+          {
+            service.serviceableAreas && service.serviceableAreas.length > 0 && (
+              <div class="bg-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
+                <div class="flex items-center gap-4 mb-8">
+                  <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
+                    <MapPin size={28} />
+                  </div>
+                  <div>
+                    <h3 class="text-2xl font-bold">Fast Pickup Locations</h3>
+                    <p class="text-blue-100">Direct {service.title} pickup from your doorstep</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {service.serviceableAreas.map((area) => (
+                    <div class="flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
+                      <CheckCircle2 size={14} class="text-blue-300" />
+                      <span class="text-sm font-semibold">{area}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          {
+            service.faqs && service.faqs.length > 0 && (
+              <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h3 class="text-3xl font-bold text-slate-900 mb-10">Frequently Asked Questions</h3>
+                <FaqSection faqs={service.faqs} />
+              </div>
+            )
+          }
         </div>
 
-        {
-          service.serviceableAreas && service.serviceableAreas.length > 0 && (
-            <div class="bg-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
-              <div class="flex items-center gap-4 mb-8">
-                <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-                  <MapPin size={28} />
-                </div>
-                <div>
-                  <h3 class="text-2xl font-bold">Fast Pickup Locations</h3>
-                  <p class="text-blue-100">Direct {service.title} pickup from your doorstep</p>
-                </div>
-              </div>
+        <div class="space-y-6">
+          <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-8">
+            <h3 class="text-xl font-bold text-slate-900 mb-6">Service Benefits</h3>
+            <ul class="space-y-4 mb-8">
+              {
+                service.keyFeatures?.map((feature) => (
+                  <li class="flex items-start gap-3">
+                    <div class="mt-1 bg-green-100 text-green-600 rounded-full p-1">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <span class="text-slate-600 font-medium">{feature}</span>
+                  </li>
+                ))
+              }
+            </ul>
 
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {service.serviceableAreas.map((area) => (
-                  <div class="flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
-                    <CheckCircle2 size={14} class="text-blue-300" />
-                    <span class="text-sm font-semibold">{area}</span>
-                  </div>
-                ))}
-              </div>
+            <div class="space-y-4">
+              <a
+                href={`https://wa.me/${settings?.whatsappNumber}`}
+                class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200"
+              >
+                <span class="text-lg">WhatsApp Quote</span>
+              </a>
+              <a
+                href={`tel:${settings?.phone}`}
+                class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              >
+                <span>Call Specialist</span>
+              </a>
             </div>
-          )
-        }
-
-        {
-          service.faqs && (
-            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-              <h3 class="text-3xl font-bold text-slate-900 mb-10">Frequently Asked Questions</h3>
-              <FaqSection faqs={service.faqs} />
-            </div>
-          )
-        }
-      </div>
-
-      <div class="space-y-6">
-        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-8">
-          <h3 class="text-xl font-bold text-slate-900 mb-6">Service Benefits</h3>
-          <ul class="space-y-4 mb-8">
-            {
-              service.keyFeatures?.map((feature) => (
-                <li class="flex items-start gap-3">
-                  <div class="mt-1 bg-green-100 text-green-600 rounded-full p-1">
-                    <CheckCircle2 size={16} />
-                  </div>
-                  <span class="text-slate-600 font-medium">{feature}</span>
-                </li>
-              ))
-            }
-          </ul>
-
-          <div class="space-y-4">
-            <a
-              href={`https://wa.me/${settings?.whatsappNumber}`}
-              class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200"
-            >
-              <span class="text-lg">WhatsApp Quote</span>
-            </a>
-            <a
-              href={`tel:${settings?.phone}`}
-              class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-            >
-              <span>Call Specialist</span>
-            </a>
           </div>
         </div>
       </div>

@@ -3,6 +3,9 @@ import { sanityClient } from 'sanity:client';
 import { MapPin, Phone, MessageSquare, ShieldCheck } from 'lucide-react';
 import Logo from './Logo.astro';
 
+// We accept seoText as a prop from the parent page
+const { seoText } = Astro.props;
+
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
   ...,
   footerMenu[]
@@ -111,8 +114,21 @@ const footerLinks = settings?.footerMenu || [];
     </div>
   </div>
 
+  {
+    seoText && (
+      <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800">
+        <div class="bg-slate-800/30 p-8 rounded-3xl border border-slate-800/50">
+          <h5 class="text-white font-bold mb-4 text-xs uppercase tracking-widest">
+            Logistic Network Overview
+          </h5>
+          <p class="text-sm leading-relaxed text-slate-500 italic">{seoText}</p>
+        </div>
+      </div>
+    )
+  }
+
   <div
-    class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold"
+    class="max-w-7xl mx-auto px-6 mt-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold"
   >
     <p>© 2026 {settings?.businessName || 'Logistics'}. All Rights Reserved.</p>
     <div class="flex gap-8">

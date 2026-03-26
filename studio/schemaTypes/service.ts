@@ -15,7 +15,6 @@ export default defineType({
       title: 'Display Priority',
       type: 'number',
       group: 'content',
-      description: 'Lower numbers appear first (e.g., 1 appears before 2).',
       initialValue: 10,
     }),
     defineField({
@@ -23,7 +22,6 @@ export default defineType({
       title: 'Service Display Name',
       type: 'string',
       group: 'content',
-      description: 'The name shown on the website (e.g., Sea Cargo)',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -31,28 +29,41 @@ export default defineType({
       title: 'URL Slug',
       type: 'slug',
       group: 'content',
-      options: {
-        source: 'title',
-        maxLength: 96,
-      },
+      options: {source: 'title', maxLength: 96},
       validation: (Rule) => Rule.required(),
     }),
-    // --- SEO SECTION ---
+    defineField({
+      name: 'heroTitle',
+      title: 'Landing Page Main Heading',
+      type: 'string',
+      group: 'content',
+    }),
+    defineField({
+      name: 'heroSubtitle',
+      title: 'Landing Page Subheading',
+      type: 'text',
+      rows: 2,
+      group: 'content',
+    }),
+    // RESTORED: Starting Price field
+    defineField({
+      name: 'startingPrice',
+      title: 'Starting Price (AED)',
+      type: 'string',
+      group: 'content',
+    }),
     defineField({
       name: 'seoTitle',
       title: 'SEO Optimized Title',
       type: 'string',
       group: 'seo',
-      description:
-        'The title seen in Google (e.g., Sea Cargo to Pakistan from Dubai | Door to Door)',
-      validation: (Rule) => Rule.max(60).warning('Keep under 60 characters.'),
+      validation: (Rule) => Rule.max(60),
     }),
     defineField({
       name: 'metaDescription',
       title: 'Meta Description',
       type: 'text',
       group: 'seo',
-      description: 'Brief summary for search results (120-160 chars).',
       validation: (Rule) => Rule.min(120).max(160),
     }),
     defineField({
@@ -63,6 +74,7 @@ export default defineType({
       of: [{type: 'string'}],
       options: {layout: 'tags'},
     }),
+    // RESTORED: Service Type for Schema.org
     defineField({
       name: 'serviceType',
       title: 'Schema Service Category',
@@ -77,8 +89,6 @@ export default defineType({
         ],
       },
     }),
-
-    // --- MAIN CONTENT ---
     defineField({
       name: 'mainImage',
       title: 'Service Cover Image',
@@ -93,30 +103,6 @@ export default defineType({
       type: 'string',
       group: 'content',
       description: 'Lucide names: ship, plane, truck, package, home',
-    }),
-    defineField({
-      name: 'startingPrice',
-      title: 'Starting Price (AED)',
-      type: 'string',
-      group: 'content',
-    }),
-    defineField({
-      name: 'rateTable',
-      title: 'Service Rate Table',
-      type: 'array',
-      group: 'content',
-      of: [
-        {
-          type: 'object',
-          name: 'rateRow',
-          fields: [
-            {name: 'item', title: 'Item Name', type: 'string'},
-            {name: 'unit', title: 'Unit', type: 'string'},
-            {name: 'price', title: 'Price (AED)', type: 'string'},
-            {name: 'note', title: 'Special Note', type: 'string'},
-          ],
-        },
-      ],
     }),
     defineField({
       name: 'description',
@@ -139,27 +125,6 @@ export default defineType({
       group: 'content',
       of: [{type: 'block'}],
     }),
-
-    // --- LOCAL TARGETING ---
-    defineField({
-      name: 'serviceableAreas',
-      title: 'Local Neighborhoods (Near Me Optimization)',
-      type: 'array',
-      group: 'local',
-      description: 'Areas where you provide this specific service.',
-      of: [{type: 'string'}],
-      options: {
-        layout: 'tags',
-        list: [
-          {title: 'Jebel Ali', value: 'Jebel Ali'},
-          {title: 'Al Quoz', value: 'Al Quoz'},
-          {title: 'Deira', value: 'Deira'},
-          {title: 'Bur Dubai', value: 'Bur Dubai'},
-          {title: 'Musaffah', value: 'Musaffah'},
-          {title: 'Sharjah Industrial Area', value: 'Sharjah Industrial Area'},
-        ],
-      },
-    }),
     defineField({
       name: 'faqs',
       title: 'Service-Specific FAQs',
@@ -169,8 +134,22 @@ export default defineType({
         {
           type: 'object',
           fields: [
-            {name: 'question', type: 'string'},
-            {name: 'answer', type: 'text'},
+            {name: 'question', title: 'Question (PAA Target)', type: 'string'},
+            {
+              name: 'atomicAnswer',
+              title: 'Atomic Answer (AI Overview)',
+              type: 'text',
+              rows: 3,
+              description: 'Fact-heavy, under 60 words for AI scraping.',
+            },
+            {
+              name: 'detailedAnswer',
+              title: 'Detailed Answer (Human View)',
+              type: 'array',
+              of: [{type: 'block'}],
+              description: 'Rich content with lists/links for users.',
+            },
+            {name: 'answer', title: 'Legacy Answer (Old)', type: 'text'},
           ],
         },
       ],

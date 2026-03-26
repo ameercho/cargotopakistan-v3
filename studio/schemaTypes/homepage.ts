@@ -5,9 +5,10 @@ export default defineType({
   title: 'Homepage Content',
   type: 'document',
   groups: [
-    {name: 'seo', title: 'SEO & Meta Data'}, // Moved to top for priority
+    {name: 'seo', title: 'SEO & Meta Data'},
     {name: 'hero', title: 'Hero Section (Top)'},
     {name: 'content', title: 'Main Sections'},
+    {name: 'footer', title: 'Footer Customization'}, // Added for better organization
   ],
   fields: [
     // --- SEO & META DATA OVERRIDES ---
@@ -16,8 +17,7 @@ export default defineType({
       title: 'Homepage SEO Title',
       type: 'string',
       group: 'seo',
-      description:
-        'Overrides the global title. Best for: "Cargo to Pakistan from Dubai & Abu Dhabi | PakCargo.ae"',
+      description: 'Overrides global title. Max 60 chars.',
       validation: (Rule) => Rule.max(60),
     }),
     defineField({
@@ -26,7 +26,7 @@ export default defineType({
       type: 'text',
       group: 'seo',
       rows: 3,
-      description: 'Overrides the global description for the homepage.',
+      description: 'Overrides global description. 120-160 chars.',
       validation: (Rule) => Rule.min(120).max(160),
     }),
     defineField({
@@ -47,9 +47,7 @@ export default defineType({
       title: 'Main Hero Heading',
       type: 'string',
       group: 'hero',
-      description:
-        'The first thing users see. Example: "Reliable Door-to-Door Cargo from UAE to Pakistan".',
-      initialValue: 'Professional Cargo Services from UAE to Pakistan',
+      description: 'Main headline for Google Ads landing.',
     }),
     defineField({
       name: 'heroSubtitle',
@@ -66,7 +64,6 @@ export default defineType({
       title: 'Featured Services',
       type: 'array',
       group: 'content',
-      description: 'Select the services to show on the homepage (e.g., Sea Cargo, Air Cargo).',
       of: [{type: 'reference', to: [{type: 'service'}]}],
     }),
 
@@ -77,7 +74,6 @@ export default defineType({
       type: 'reference',
       to: [{type: 'trustPoints'}],
       group: 'content',
-      description: 'Links the warehouse stats and safety rates to the homepage.',
     }),
 
     // --- PARTNERS / NETWORK ---
@@ -86,7 +82,6 @@ export default defineType({
       title: 'Network Partners',
       type: 'array',
       group: 'content',
-      description: 'Select logos of DHL, Pakistan Post, etc. to show for authority.',
       of: [{type: 'reference', to: [{type: 'partner'}]}],
     }),
 
@@ -95,24 +90,38 @@ export default defineType({
       name: 'faqs',
       title: 'Homepage FAQs (GEO-Optimized)',
       type: 'array',
-      group: 'content', // Moved to content for better visual flow in Studio
-      description: 'General questions to rank for broad UAE-Pakistan search terms.',
+      group: 'content',
       of: [
         {
           type: 'object',
           fields: [
-            {name: 'question', type: 'string'},
-            {name: 'answer', type: 'text'},
+            {name: 'question', title: 'High-Intent Query', type: 'string'},
+            {
+              name: 'atomicAnswer',
+              title: 'Atomic Answer (AI)',
+              type: 'text',
+              rows: 3,
+            },
+            {
+              name: 'detailedAnswer',
+              title: 'Detailed Answer (Visitor View)',
+              type: 'array',
+              of: [{type: 'block'}],
+            },
+            {name: 'answer', title: 'Legacy Answer', type: 'text'},
           ],
         },
       ],
     }),
+
+    // --- FOOTER SECTION (FIXED NAME) ---
     defineField({
-      name: 'footerText',
-      title: 'Footer SEO Text',
+      name: 'footerSeoText', // CHANGED from footerText to match Astro code
+      title: 'Footer SEO Text Block',
       type: 'text',
-      group: 'content',
-      description: 'A small paragraph at the bottom of the page containing your main keywords.',
+      group: 'footer',
+      description:
+        'Detailed paragraph for Google ranking. Shows at the very bottom of the homepage.',
     }),
   ],
 })

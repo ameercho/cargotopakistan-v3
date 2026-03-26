@@ -2,138 +2,86 @@ import {defineField, defineType} from 'sanity'
 
 export default defineType({
   name: 'page',
-  title: 'Pages',
+  title: 'Service Landing Pages',
   type: 'document',
   groups: [
     {name: 'content', title: 'Content'},
-    {name: 'about', title: 'About Us Details'},
-    {name: 'contact', title: 'Contact Details'},
-    {name: 'seo', title: 'SEO'},
+    {name: 'seo', title: 'SEO & Meta Tags'},
+    {name: 'technical', title: 'Technical Details'},
   ],
   fields: [
     defineField({
       name: 'title',
-      title: 'Page Title',
+      title: 'Page Name (Internal)',
       type: 'string',
       group: 'content',
+      description: 'e.g., Dubai to Pakistan Professional Cargo',
     }),
     defineField({
       name: 'slug',
-      title: 'Slug',
+      title: 'URL Slug',
       type: 'slug',
       group: 'content',
       options: {source: 'title'},
+      description: 'The URL path (e.g., dubai-to-pakistan)',
     }),
 
-    // --- ABOUT PAGE SPECIFIC FIELDS ---
+    // --- HERO SECTION FOR LANDING PAGES ---
     defineField({
-      name: 'subtitle',
-      title: 'Hero Subtitle',
+      name: 'heroTitle',
+      title: 'Hero Heading (H1)',
       type: 'string',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
+      group: 'content',
+      description: 'The main professional headline for this specific route.',
     }),
-    defineField({
-      name: 'heroTitlePart1',
-      title: 'Hero Title (White Text)',
-      type: 'string',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'heroTitlePart2',
-      title: 'Hero Title (Blue Text)',
-      type: 'string',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'heroDescription',
-      title: 'Hero Description',
-      type: 'text',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'yearsExp',
-      title: 'Years of Experience',
-      type: 'string',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'cargoMoved',
-      title: 'Cargo Moved Stat',
-      type: 'string',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'quoteText',
-      title: 'Mission Quote',
-      type: 'text',
-      group: 'about',
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-    defineField({
-      name: 'mainImage',
-      title: 'Featured Image',
-      type: 'image',
-      group: 'about',
-      options: {hotspot: true},
-      hidden: ({document}) => document?.slug?.current !== 'about-us',
-    }),
-
-    // --- CONTACT PAGE SPECIFIC FIELDS ---
     defineField({
       name: 'heroSubtitle',
-      title: 'Contact Hero Subtitle',
-      type: 'string',
-      group: 'contact',
-      hidden: ({document}) => document?.slug?.current !== 'contact',
-    }),
-    defineField({
-      name: 'workingHours',
-      title: 'Display Working Hours',
-      type: 'string',
-      group: 'contact',
-      hidden: ({document}) => document?.slug?.current !== 'contact',
-    }),
-    defineField({
-      name: 'sidebarTitle',
-      title: 'Sidebar Blue Box Title',
-      type: 'string',
-      group: 'contact',
-      hidden: ({document}) => document?.slug?.current !== 'contact',
-    }),
-    defineField({
-      name: 'sidebarText',
-      title: 'Sidebar Blue Box Text',
+      title: 'Hero Subtext',
       type: 'text',
-      group: 'contact',
-      hidden: ({document}) => document?.slug?.current !== 'contact',
+      rows: 3,
+      group: 'content',
+      description: 'Focus on Jebel Ali warehouse and 100% safety here.',
     }),
 
-    // --- GENERIC CONTENT FIELD ---
+    // --- MAIN BODY CONTENT ---
     defineField({
       name: 'content',
-      title: 'Page Body / Description',
+      title: 'Main Professional Body Copy',
       type: 'array',
       group: 'content',
-      of: [{type: 'block'}, {type: 'image'}],
+      description: 'Use the Professional Leader tone here.',
+      of: [{type: 'block'}, {type: 'image', options: {hotspot: true}}],
+    }),
+
+    // --- CITY HIGHLIGHTS (For SEO) ---
+    defineField({
+      name: 'cityHighlights',
+      title: 'Major City Connections',
+      type: 'array',
+      group: 'content',
+      description: 'List cities like Karachi, Lahore, Islamabad for this route.',
+      of: [{type: 'string'}],
     }),
 
     // --- SEO GROUP ---
     defineField({
       name: 'seoTitle',
-      title: 'SEO Title',
+      title: 'Meta Title',
       type: 'string',
       group: 'seo',
+      validation: (Rule) => Rule.max(60),
     }),
     defineField({
       name: 'metaDescription',
       title: 'Meta Description',
       type: 'text',
+      group: 'seo',
+      validation: (Rule) => Rule.max(160),
+    }),
+    defineField({
+      name: 'ogImage',
+      title: 'Social Share Image',
+      type: 'image',
       group: 'seo',
     }),
   ],

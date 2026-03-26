@@ -1,33 +1,42 @@
 ---
-import { sanityClient } from 'sanity:client';
+import { sanityClient } from '../lib/sanity';
 import Layout from '../layouts/Layout.astro';
 import PortableText from '../components/PortableText.astro';
 import { Table, MapPin, CheckCircle2 } from 'lucide-react';
 
 export async function getStaticPaths() {
-  // Fetch both 'page' and 'service' types to generate all URLs
+  if (!sanityClient) {
+    console.error('Sanity Client is missing.');
+    return [];
+  }
+
   const data = await sanityClient.fetch(`*[_type in ["page", "service"]]`);
 
   return data.map((item: any) => ({
-    params: { slug: item.slug.current },
+    params: { slug: item.slug?.current || 'unknown' },
     props: { item },
   }));
 }
 
-const { item } = Astro.props;
+// Fixed: Explicitly casting Astro.props as any to stop the 'never' error
+const { item } = Astro.props as { item: any };
 
 if (!item) {
   return Astro.redirect('/404');
 }
 
-// Logic to determine if this is a Service page or a standard Page
 const isService = item._type === 'service';
+
+// Safe mapping using optional chaining
+const displayTitle = item.heroTitle || item.title || 'Cargo Service';
+const displayDescription = item.heroSubtitle || item.description || item.metaDescription || '';
+const displayContent = item.content || item.details || [];
+const displayCities = item.cityHighlights || item.serviceableAreas || [];
 ---
 
 <Layout
-  title={item.seoTitle || item.title}
-  description={item.metaDescription || item.description}
-  keywords={item.keywords}
+  title={item.seoTitle || displayTitle}
+  description={item.metaDescription || displayDescription}
 >
   <main class="relative pt-32 pb-20 bg-slate-50 min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
@@ -35,16 +44,15 @@ const isService = item._type === 'service';
         <div
           class="flex items-center gap-3 text-blue-600 font-bold mb-4 uppercase tracking-widest text-sm"
         >
-          <span class="px-3 py-1 bg-blue-100 rounded-lg"
-            >{isService ? 'Service' : 'Information'}</span
-          >
-          {item.startingPrice && <span>• Starting from AED {item.startingPrice}</span>}
+          <span class="px-3 py-1 bg-blue-100 rounded-lg">
+            {isService ? 'Service' : 'Professional Logistics'}
+          </span>
         </div>
         <h1 class="text-4xl md:text-7xl font-black text-slate-900 mb-6 tracking-tight leading-none">
-          {item.title}
+          {displayTitle}
         </h1>
         <p class="text-xl text-slate-600 max-w-2xl leading-relaxed">
-          {item.description}
+          {displayDescription}
         </p>
       </header>
 
@@ -53,71 +61,20 @@ const isService = item._type === 'service';
           <article
             class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate prose-lg max-w-none"
           >
-            <PortableText value={item.details || item.content} />
+            <PortableText value={displayContent} />
           </article>
-
-          {
-            isService && item.rateTable && (
-              <section class="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
-                <div class="flex items-center gap-4 mb-8">
-                  <Table class="text-blue-400" size={32} />
-                  <h2 class="text-3xl font-black italic">Latest Shipping Rates</h2>
-                </div>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left border-collapse">
-                    <thead>
-                      <tr class="border-b border-slate-700 text-slate-400 uppercase text-sm tracking-wider">
-                        <th class="py-4 px-2">Item/Category</th>
-                        <th class="py-4 px-2">Unit</th>
-                        <th class="py-4 px-2">Price (AED)</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800">
-                      {item.rateTable.map((row: any) => (
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                          <td class="py-5 px-2 font-bold">{row.item}</td>
-                          <td class="py-5 px-2 text-slate-400">{row.unit}</td>
-                          <td class="py-5 px-2 text-blue-400 font-black">AED {row.price}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {item.rateTable[0]?.note && (
-                  <p class="mt-6 text-sm text-slate-500 italic">* {item.rateTable[0].note}</p>
-                )}
-              </section>
-            )
-          }
         </div>
 
         <div class="space-y-8">
           {
-            isService && item.keyFeatures && (
-              <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-                <h3 class="text-xl font-black mb-6 flex items-center gap-2">
-                  <CheckCircle2 class="text-green-500" /> Key Features
-                </h3>
-                <ul class="space-y-4">
-                  {item.keyFeatures.map((feature: string) => (
-                    <li class="flex items-start gap-3 text-slate-600 font-medium leading-tight">
-                      <span class="h-2 w-2 mt-1.5 rounded-full bg-blue-600 shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-          }
-
-          {
-            isService && item.serviceableAreas && (
+            displayCities.length > 0 && (
               <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
                 <h3 class="text-xl font-black text-blue-900 mb-6 flex items-center gap-2">
-                  <MapPin /> Service Areas
+                  <MapPin className="text-blue-600" />{' '}
+                  {isService ? 'Service Areas' : 'Direct Delivery To'}
                 </h3>
                 <div class="flex flex-wrap gap-2">
-                  {item.serviceableAreas.map((area: string) => (
+                  {displayCities.map((area: string) => (
                     <span class="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-xl border border-blue-200">
                       {area}
                     </span>
@@ -128,13 +85,15 @@ const isService = item._type === 'service';
           }
 
           <div class="bg-slate-900 p-8 rounded-[2rem] text-center text-white">
-            <h3 class="text-2xl font-black mb-4">Need a Quote?</h3>
-            <p class="text-slate-400 mb-6">Fast & secure shipping to Pakistan.</p>
+            <h3 class="text-2xl font-black mb-4">Professional Quote</h3>
+            <p class="text-slate-400 mb-6">
+              Contact our Jebel Ali team for reliable cargo management.
+            </p>
             <a
               href="/contact"
               class="block w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black transition-all"
             >
-              Contact Us Now
+              Request Consultation
             </a>
           </div>
         </div>

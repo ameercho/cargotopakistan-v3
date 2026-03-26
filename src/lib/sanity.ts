@@ -1,11 +1,17 @@
-import { sanityClient } from 'sanity:client';
-// UPDATED: Using the named export to resolve deprecation warning
-import { createImageUrlBuilder } from '@sanity/image-url';
+import { createClient } from '@sanity/client';
+import imageUrlBuilder from '@sanity/image-url';
 
-// Use the new builder method
-const builder = createImageUrlBuilder(sanityClient);
+// 1. Define the client directly here instead of importing it
+export const sanityClient = createClient({
+  projectId: 'vx91r8qj', // <--- REPLACE THIS with your actual Project ID from sanity.config.ts
+  dataset: 'production',
+  apiVersion: '2024-03-19',
+  useCdn: false, // Set to false for the most up-to-date content
+});
+
+// 2. Setup the image builder
+const builder = imageUrlBuilder(sanityClient);
 
 export function urlFor(source: any) {
-  // Ensure we return a valid builder object
   return builder.image(source);
 }

@@ -3,11 +3,11 @@ import { sanityClient } from 'sanity:client';
 import Layout from '../../layouts/Layout.astro';
 import { Ship, Plane, FileText, Home, Package, Truck, MapPin } from 'lucide-react';
 
-// 1. Fetch data from Sanity
-const services = await sanityClient.fetch(`*[_type == "service"] | order(title asc)`);
+const services = await sanityClient.fetch(`*[_type == "service"] | order(order asc, title asc)`);
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
-// 2. Icon Mapping
+const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
+
 const iconMap = {
   ship: Ship,
   plane: Plane,
@@ -17,34 +17,32 @@ const iconMap = {
   truck: Truck,
 };
 
-// 3. ItemList Schema (Expert Practice)
 const itemListSchema = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
-  name: 'Pak Cargo Services Catalog',
+  name: `${settings?.businessName || 'Cargo'} Services Catalog`,
   description: 'Comprehensive list of door-to-door cargo services from UAE to Pakistan.',
   itemListElement: services.map((service, index) => ({
     '@type': 'ListItem',
     position: index + 1,
-    url: `https://pakcargo.ae/services/${service.slug.current}`,
+    url: `${baseUrl}/services/${service.slug.current}`,
     name: service.title,
   })),
 };
 
-// 4. Breadcrumb Schema
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://pakcargo.ae' },
-    { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://pakcargo.ae/services' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+    { '@type': 'ListItem', position: 2, name: 'Services', item: `${baseUrl}/services` },
   ],
 };
 ---
 
 <Layout
-  title="Professional Cargo Services to Pakistan | PakCargo.ae"
-  description="Explore our full range of pak cargo services. Cheap door-to-door sea and air cargo to Pakistan from Dubai, Abu Dhabi, Sharjah, and Ajman."
+  title={`Cargo Services to Pakistan | ${settings?.title || 'Professional Logistics'}`}
+  description={settings?.description}
 >
   <main class="py-16 bg-slate-50">
     <div class="max-w-6xl mx-auto px-6">
@@ -61,10 +59,10 @@ const breadcrumbSchema = {
           Our <span class="text-blue-600">Cargo Services</span> to Pakistan
         </h1>
         <p class="text-xl text-slate-600 leading-relaxed max-w-3xl">
-          We provide the most comprehensive <strong>cargo services dubai to pakistan</strong>.
+          We provide the most comprehensive <strong>cargo services from UAE to Pakistan</strong>.
           Whether you need fast air freight or budget-friendly sea cargo, we offer guaranteed <strong
             >door to door cargo pickup</strong
-          > across the UAE.
+          > across the Emirates.
         </p>
       </header>
 
@@ -73,8 +71,8 @@ const breadcrumbSchema = {
           services.map((service) => {
             const IconComponent = iconMap[service.icon] || Package;
             return (
-              <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                <div class="mb-6 inline-block p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+                <div class="mb-6 inline-block p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors self-start">
                   <IconComponent size={32} />
                 </div>
                 <h2 class="text-2xl font-bold text-slate-900 mb-4">{service.title}</h2>
@@ -82,26 +80,28 @@ const breadcrumbSchema = {
                   {service.description}
                 </p>
 
-                {service.startingPrice && (
-                  <div class="mb-6 py-2 px-4 bg-slate-50 rounded-lg inline-block text-sm font-semibold text-slate-700">
-                    Starting from <span class="text-blue-600">AED {service.startingPrice}</span>
-                  </div>
-                )}
+                <div class="mt-auto space-y-4">
+                  {service.startingPrice && (
+                    <div class="py-2 px-4 bg-slate-50 rounded-lg inline-block text-sm font-semibold text-slate-700">
+                      Starting from <span class="text-blue-600">AED {service.startingPrice}</span>
+                    </div>
+                  )}
 
-                <a
-                  href={`/services/${service.slug.current}`}
-                  class="flex items-center justify-between w-full py-4 px-6 bg-slate-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors mt-auto"
-                >
-                  View Details
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    />
-                  </svg>
-                </a>
+                  <a
+                    href={`/services/${service.slug.current}`}
+                    class="flex items-center justify-between w-full py-4 px-6 bg-slate-900 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors"
+                  >
+                    View Details
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </div>
             );
           })
@@ -117,8 +117,8 @@ const breadcrumbSchema = {
         </div>
 
         <p class="text-slate-600 mb-10 text-lg">
-          We offer free door-to-door cargo pickup for all <strong>pakistan cargo dubai</strong>
-          and neighboring emirates. Our logistics network covers:
+          We offer free door-to-door cargo pickup for all shipments from Dubai and neighboring
+          emirates. Our logistics network covers:
         </p>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

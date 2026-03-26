@@ -1,34 +1,44 @@
 ---
-import { sanityClient } from "sanity:client";
+import { sanityClient } from 'sanity:client';
 import { ShieldCheck, Truck, Clock, Phone, MessageSquare } from 'lucide-react';
 
+// 1. Accept the dynamic content passed from index.astro
+const { title, subtitle } = Astro.props;
+
+// 2. Fetch global settings for WhatsApp/Phone
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
+// 3. Fallback content if Sanity fields are empty
+const displayTitle = title || 'Reliable Door-to-Door Cargo from Dubai to Pakistan';
+const displaySubtitle =
+  subtitle ||
+  'Customs cleared, hassle-free shipping for household goods and documents. Trusted by thousands across the UAE.';
 ---
 
 <section class="relative bg-white pt-10 md:pt-16 pb-12 overflow-hidden w-full">
   <div class="max-w-7xl mx-auto px-6 lg:px-8">
     <div class="grid lg:grid-cols-2 gap-12 items-center">
-      
       <div class="text-left z-10">
-        <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-          Reliable <span class="text-blue-600">Door-to-Door</span> Cargo from Dubai to Pakistan
-        </h1>
+        <h1
+          class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6"
+          set:html={displayTitle}
+        />
+
         <p class="text-lg text-slate-600 mb-8 max-w-lg leading-relaxed">
-          Customs cleared, hassle-free shipping for household goods and documents. 
-          Trusted by thousands across the UAE since 2025.
+          {displaySubtitle}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-10">
-          <a 
-            href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`} 
+          <a
+            href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`}
             class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             <MessageSquare size={22} />
             WhatsApp Now
           </a>
 
-          <a 
-            href={`tel:${settings?.phone}`} 
+          <a
+            href={`tel:${settings?.phone}`}
             class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             <Phone size={22} />
@@ -38,9 +48,11 @@ const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
       </div>
 
       <div class="relative w-full">
-        <div class="rounded-3xl overflow-hidden shadow-2xl border-8 border-slate-50 bg-slate-100 aspect-video lg:aspect-square">
-          <img 
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800" 
+        <div
+          class="rounded-3xl overflow-hidden shadow-2xl border-8 border-slate-50 bg-slate-100 aspect-video lg:aspect-square"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800"
             alt="Logistics and Cargo Service"
             class="w-full h-full object-cover"
           />
