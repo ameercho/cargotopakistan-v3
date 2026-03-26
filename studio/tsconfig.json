@@ -1,5 +1,4 @@
 {
-  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -16,9 +15,9 @@
     "jsxImportSource": "react",
     "baseUrl": ".",
     "paths": {
-      "sanity:client": ["node_modules/@sanity/astro/dist/runtime/client.d.ts"]
+      "@/*": ["./*"]
     }
   },
-  "include": ["src/**/*", "src/env.d.ts", ".astro/types.d.ts", "**/*.ts", "**/*.tsx", "**/*.astro"],
+  "include": ["**/*.ts", "**/*.tsx", "sanity.config.ts", "sanity.cli.ts"],
   "exclude": ["node_modules", "dist"]
 }
