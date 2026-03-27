@@ -21,6 +21,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.1",
+    "@vercel/speed-insights": "^2.0.0",
     "@vitejs/plugin-react": "^5.1.4",
     "astro": "^5.18.0",
     "astro-portabletext": "^0.13.0",
