@@ -27,7 +27,7 @@ const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
   }
 }`);
 
-// 2. FIX: Ensure all services show if none are specifically "featured"
+// 2. Services Logic
 let services = homeData?.featuredServices;
 if (!services || services.length === 0) {
   services = await sanityClient.fetch(`*[_type == "service"] | order(order asc)`);
@@ -36,11 +36,19 @@ if (!services || services.length === 0) {
 const rates = await sanityClient.fetch(`*[_type == "rateCard"] | order(order asc)`);
 const trustData =
   homeData?.featuredTrustPoints || (await sanityClient.fetch(`*[_type == "trustPoints"][0]`));
-const partners = homeData?.featuredPartners || (await sanityClient.fetch(`*[_type == "partner"]`));
+
+// 3. FIX: Partners separation logic based on your partner.ts schema
+const allPartners =
+  homeData?.featuredPartners || (await sanityClient.fetch(`*[_type == "partner"]`));
+
+// Logic: Carriers and Hubs are Global; Last-mile and Customs (in this context) are Local
+const globalPartners = allPartners?.filter((p) => p.type === 'carrier' || p.type === 'hub') || [];
+const localPartners =
+  allPartners?.filter((p) => p.type === 'last-mile' || p.type === 'customs') || [];
+
 const serviceAreas = settings?.mainServiceAreas || ['Dubai', 'Abu Dhabi', 'Sharjah'];
 const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
 
-// 3. Advanced JSON-LD Schema
 const businessSchema = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -75,7 +83,6 @@ const businessSchema = {
   <Hero title={homeData?.heroTitle} subtitle={homeData?.heroSubtitle} />
 
   <main>
-    {/* This will now receive the full list of services */}
     <ServiceSection services={services} />
 
     {trustData && <TrustSection trustData={trustData} />}
@@ -90,7 +97,7 @@ const businessSchema = {
       </div>
     </section>
 
-    <PartnerLogos partners={partners} />
+    <PartnerLogos globalPartners={globalPartners} localPartners={localPartners} />
 
     <section class="py-24 bg-slate-50 border-y border-slate-100">
       <div class="max-w-6xl mx-auto px-6">
@@ -162,7 +169,7 @@ const businessSchema = {
           </a>
           <a
             href={`tel:${settings?.phone}`}
-            class="w-full sm:w-auto px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all text-xl"
+            class="w-full sm:w-auto px-12 py-5 bg-blue-600 hover:border-blue-700 text-white font-bold rounded-2xl transition-all text-xl"
           >
             Call Specialist
           </a>
