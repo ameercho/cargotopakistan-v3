@@ -62,20 +62,20 @@ const navLinks = settings?.headerMenu || [];
     <div class="flex items-center gap-2 md:gap-4">
       <a
         href={`tel:${settings?.phone}`}
-        class="flex items-center justify-center w-10 h-10 md:w-auto md:h-auto rounded-full md:rounded-none bg-blue-50/50 md:bg-transparent text-blue-600 hover:bg-blue-100 transition-colors"
+        class="hidden md:flex items-center justify-center text-blue-600 hover:text-blue-700 transition-colors"
         aria-label="Call Us"
       >
         <Phone size={20} />
-        <span class="hidden lg:inline ml-2 font-bold text-slate-900">{settings?.phone}</span>
+        <span class="ml-2 font-bold text-slate-900">{settings?.phone}</span>
       </a>
 
       <a
         href={`https://wa.me/${settings?.whatsappNumber}`}
-        class="flex items-center justify-center w-10 h-10 md:w-auto md:px-6 md:py-2.5 rounded-full md:rounded-lg bg-green-50/50 md:bg-green-600 text-green-600 md:text-white hover:bg-green-100 md:hover:bg-green-700 transition-colors md:shadow-lg md:shadow-green-100"
+        class="hidden md:flex items-center justify-center px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-lg shadow-green-100"
         aria-label="Chat on WhatsApp"
       >
         <MessageSquare size={20} />
-        <span class="hidden md:inline ml-2 font-bold">WhatsApp</span>
+        <span class="ml-2 font-bold">WhatsApp</span>
       </a>
 
       <button
@@ -98,23 +98,33 @@ const navLinks = settings?.headerMenu || [];
     id="mobile-menu"
     class="fixed inset-0 bg-white z-[105] translate-x-full transition-transform duration-300 md:hidden pt-24 px-6 overflow-y-auto"
   >
-    <nav class="flex flex-col gap-6">
+    <nav class="flex flex-col gap-4">
       {
         navLinks.map((item) => (
-          <a href={item.link} class="text-2xl font-bold text-slate-900 border-b pb-4">
+          <a
+            href={item.link}
+            class="text-2xl font-bold text-slate-900 border-b border-slate-50 pb-4"
+          >
             {item.label}
           </a>
         ))
       }
 
-      <div class="flex flex-col gap-4">
-        <p class="text-xs font-black text-blue-600 uppercase tracking-widest">Our Services</p>
-        <div class="grid grid-cols-1 gap-3">
+      <div class="border-b border-slate-50 pb-4">
+        <button
+          id="mobile-services-toggle"
+          class="flex items-center justify-between w-full text-2xl font-bold text-slate-900 text-left"
+        >
+          Services
+          <ChevronDown id="services-chevron" class="transition-transform duration-300" size={24} />
+        </button>
+
+        <div id="mobile-services-list" class="hidden flex-col gap-4 mt-4 pl-4 overflow-hidden">
           {
             services.map((s) => (
               <a
                 href={`/services/${s.slug.current}`}
-                class="text-lg font-semibold text-slate-700 pl-2 border-l-2 border-blue-100"
+                class="text-lg font-semibold text-slate-600 border-l-2 border-blue-100 pl-4 py-1"
               >
                 {s.title}
               </a>
@@ -122,12 +132,27 @@ const navLinks = settings?.headerMenu || [];
           }
         </div>
       </div>
+
+      <div class="mt-4 flex flex-col gap-6">
+        <a
+          href={`tel:${settings?.phone}`}
+          class="flex items-center gap-3 text-lg font-bold text-slate-900"
+        >
+          <Phone class="text-blue-600" />
+          {settings?.phone}
+        </a>
+        <a
+          href={`https://wa.me/${settings?.whatsappNumber}`}
+          class="flex items-center gap-3 text-lg font-bold text-green-600"
+        >
+          <MessageSquare /> WhatsApp
+        </a>
+      </div>
     </nav>
   </div>
 </header>
 
 <style>
-  /* Ensure correct icon visibility based on button state */
   [data-state='open'] #hamburger-icon {
     display: none;
   }
@@ -140,33 +165,58 @@ const navLinks = settings?.headerMenu || [];
   [data-state='closed'] #close-icon {
     display: none;
   }
+
+  /* Helper for the chevron rotation */
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
 </style>
 
 <script>
   function initMenu() {
     const menuBtn = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
+    const servicesToggle = document.getElementById('mobile-services-toggle');
+    const servicesList = document.getElementById('mobile-services-list');
+    const chevron = document.getElementById('services-chevron');
 
     if (!menuBtn || !mobileMenu) return;
 
-    menuBtn.replaceWith(menuBtn.cloneNode(true));
-    const newBtn = document.getElementById('mobile-menu-button');
-
-    newBtn.addEventListener('click', () => {
-      const isClosed = newBtn.getAttribute('data-state') === 'closed';
+    // Main Menu Toggle
+    menuBtn.onclick = () => {
+      const isClosed = menuBtn.getAttribute('data-state') === 'closed';
 
       if (isClosed) {
-        newBtn.setAttribute('data-state', 'open');
+        menuBtn.setAttribute('data-state', 'open');
         mobileMenu.classList.remove('translate-x-full');
         document.body.style.overflow = 'hidden';
       } else {
-        newBtn.setAttribute('data-state', 'closed');
+        menuBtn.setAttribute('data-state', 'closed');
         mobileMenu.classList.add('translate-x-full');
         document.body.style.overflow = '';
       }
-    });
+    };
+
+    // Submenu (Services) Toggle
+    if (servicesToggle && servicesList && chevron) {
+      servicesToggle.onclick = (e) => {
+        e.preventDefault();
+        const isHidden = servicesList.classList.contains('hidden');
+
+        if (isHidden) {
+          servicesList.classList.remove('hidden');
+          servicesList.classList.add('flex');
+          chevron.classList.add('rotate-180');
+        } else {
+          servicesList.classList.add('hidden');
+          servicesList.classList.remove('flex');
+          chevron.classList.remove('rotate-180');
+        }
+      };
+    }
   }
 
+  // Support for Astro View Transitions and initial load
   initMenu();
   document.addEventListener('astro:after-swap', initMenu);
 </script>
