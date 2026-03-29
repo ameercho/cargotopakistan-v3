@@ -40,10 +40,8 @@ const iconMap = {
 };
 const IconComponent = iconMap[service.icon] || Package;
 
-// Use the dynamic domain from Site Settings
 const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
 
-// Prepare FAQ Items
 const faqSchemaItems =
   service.faqs?.map((faq) => ({
     '@type': 'Question',
@@ -110,7 +108,9 @@ const combinedSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 
   <main class="bg-slate-50 min-h-screen">
-    <section class="relative h-[50vh] min-h-[450px] flex items-center overflow-hidden bg-slate-900">
+    <section
+      class="relative min-h-[600px] md:min-h-[700px] flex items-center overflow-hidden bg-slate-900 pt-20 pb-32 md:pb-48"
+    >
       {
         service.mainImage && (
           <img
@@ -120,39 +120,43 @@ const combinedSchema = {
           />
         )
       }
-      <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent">
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent">
       </div>
 
       <div class="relative z-10 max-w-6xl mx-auto px-6 w-full">
         <nav class="text-blue-400 text-sm mb-6 flex items-center gap-2 font-medium">
-          <a href="/" class="hover:text-white transition-colors">Home</a>
-          <span>/</span>
-          <a href="/services" class="hover:text-white transition-colors">Services</a>
-          <span>/</span>
-          <span class="text-white">{service.title}</span>
+          <a href="/" class="hover:text-white transition-colors text-xs md:text-sm">Home</a>
+          <span class="text-xs md:text-sm">/</span>
+          <a href="/services" class="hover:text-white transition-colors text-xs md:text-sm"
+            >Services</a
+          >
+          <span class="text-xs md:text-sm">/</span>
+          <span class="text-white text-xs md:text-sm truncate max-w-[150px] md:max-w-none"
+            >{service.title}</span
+          >
         </nav>
 
         <div
-          class="inline-flex items-center gap-3 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-sm font-bold mb-6 backdrop-blur-md"
+          class="inline-flex items-center gap-3 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-xs md:text-sm font-bold mb-6 backdrop-blur-md"
         >
           <IconComponent size={18} />
           <span>Professional Logistics</span>
         </div>
 
         <h1
-          class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl leading-tight"
+          class="text-3xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl leading-[1.1]"
         >
           {service.heroTitle || service.title}
         </h1>
 
         {
           service.heroSubtitle ? (
-            <p class="text-xl md:text-2xl text-slate-300 max-w-2xl font-medium leading-relaxed">
+            <p class="text-lg md:text-2xl text-slate-300 max-w-2xl font-medium leading-relaxed">
               {service.heroSubtitle}
             </p>
           ) : (
             service.startingPrice && (
-              <p class="text-2xl text-blue-400 font-bold">
+              <p class="text-xl md:text-2xl text-blue-400 font-bold">
                 Rates starting from AED {service.startingPrice}
               </p>
             )
@@ -161,16 +165,16 @@ const combinedSchema = {
       </div>
     </section>
 
-    <div class="max-w-6xl mx-auto px-6 -mt-20 relative z-20 pb-20">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 -mt-12 md:-mt-24 relative z-20 pb-20">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 space-y-8">
           <div
-            class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
+            class="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100"
           >
-            <h2 class="text-3xl font-bold text-slate-900 mb-6 italic">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-6 italic">
               Reliable {service.title} Solution
             </h2>
-            <div class="prose prose-slate prose-lg max-w-none mb-10">
+            <div class="prose prose-slate prose-sm md:prose-lg max-w-none mb-10">
               <PortableText value={service.details} />
             </div>
 
@@ -179,14 +183,16 @@ const combinedSchema = {
 
           {
             service.serviceableAreas && service.serviceableAreas.length > 0 && (
-              <div class="bg-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
+              <div class="bg-blue-600 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 text-white shadow-2xl">
                 <div class="flex items-center gap-4 mb-8">
-                  <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
+                  <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md text-white">
                     <MapPin size={28} />
                   </div>
                   <div>
-                    <h3 class="text-2xl font-bold">Fast Pickup Locations</h3>
-                    <p class="text-blue-100">Direct {service.title} pickup from your doorstep</p>
+                    <h3 class="text-xl md:text-2xl font-bold">Fast Pickup Locations</h3>
+                    <p class="text-blue-100 text-sm md:text-base">
+                      Direct {service.title} pickup from your doorstep
+                    </p>
                   </div>
                 </div>
 
@@ -194,7 +200,7 @@ const combinedSchema = {
                   {service.serviceableAreas.map((area) => (
                     <div class="flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/10 hover:bg-white/20 transition-colors">
                       <CheckCircle2 size={14} class="text-blue-300" />
-                      <span class="text-sm font-semibold">{area}</span>
+                      <span class="text-xs md:text-sm font-semibold">{area}</span>
                     </div>
                   ))}
                 </div>
@@ -204,8 +210,10 @@ const combinedSchema = {
 
           {
             service.faqs && service.faqs.length > 0 && (
-              <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-                <h3 class="text-3xl font-bold text-slate-900 mb-10">Frequently Asked Questions</h3>
+              <div class="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h3 class="text-2xl md:text-3xl font-bold text-slate-900 mb-10">
+                  Frequently Asked Questions
+                </h3>
                 <FaqSection faqs={service.faqs} />
               </div>
             )
@@ -213,16 +221,18 @@ const combinedSchema = {
         </div>
 
         <div class="space-y-6">
-          <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-8">
+          <div
+            class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-24"
+          >
             <h3 class="text-xl font-bold text-slate-900 mb-6">Service Benefits</h3>
             <ul class="space-y-4 mb-8">
               {
                 service.keyFeatures?.map((feature) => (
                   <li class="flex items-start gap-3">
-                    <div class="mt-1 bg-green-100 text-green-600 rounded-full p-1">
+                    <div class="mt-1 bg-green-100 text-green-600 rounded-full p-1 flex-shrink-0">
                       <CheckCircle2 size={16} />
                     </div>
-                    <span class="text-slate-600 font-medium">{feature}</span>
+                    <span class="text-slate-600 text-sm md:text-base font-medium">{feature}</span>
                   </li>
                 ))
               }
