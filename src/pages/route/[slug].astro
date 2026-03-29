@@ -1,0 +1,166 @@
+---
+import { sanityClient } from 'sanity:client';
+import Layout from '../../layouts/Layout.astro';
+import { ArrowRight, Ship, Plane, ShieldCheck, MapPin, Search } from 'lucide-react';
+
+export async function getStaticPaths() {
+  // Fetch routes and "expand" the origin and destination references
+  const routes = await sanityClient.fetch(`
+    *[_type == "route"]{
+      "slug": slug.current,
+      "originName": origin->title,
+      "originSubAreas": origin->subAreas,
+      "destName": destination->title,
+      "destProvince": destination->province,
+      "baseRate": baseRate
+    }
+  `);
+
+  return routes.map((route) => ({
+    params: { slug: route.slug },
+    props: { route },
+  }));
+}
+
+const { route } = Astro.props;
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
+const routeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: `Cargo from ${route.originName} to ${route.destName}`,
+  provider: {
+    '@type': 'LocalBusiness',
+    name: settings?.businessName,
+  },
+  areaServed: [
+    { '@type': 'City', name: route.originName },
+    { '@type': 'City', name: route.destName },
+  ],
+  description: `Professional door-to-door cargo shipping from ${route.originName}, UAE to ${route.destName}, Pakistan. Full customs handling and secure warehouse loading.`,
+};
+---
+
+<Layout
+  title={`Cargo from ${route.originName} to ${route.destName} | Door to Door Pakistan`}
+  description={`Send your goods from ${route.originName} to ${route.destName} safely. We handle UAE collection from ${route.originSubAreas?.slice(0, 3).join(', ')} and deliver across ${route.destName}.`}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(routeSchema)} slot="head" />
+
+  <main class="bg-white">
+    {/* HERO SECTION - Shows the Connection */}
+    <section class="bg-gradient-to-br from-blue-900 to-slate-900 pt-32 pb-20 px-6">
+      <div class="max-w-6xl mx-auto text-center">
+        <div
+          class="flex items-center justify-center gap-4 mb-8 text-blue-400 font-bold uppercase tracking-widest text-sm"
+        >
+          <span>{route.originName}</span>
+          <ArrowRight size={20} />
+          <span>{route.destName}</span>
+        </div>
+        <h1 class="text-4xl md:text-7xl font-black text-white mb-8">
+          Direct Cargo to <span class="text-blue-400 italic">{route.destName}</span>
+          <br /><span class="text-3xl md:text-5xl opacity-80">from {route.originName}</span>
+        </h1>
+        <p class="text-blue-100/70 text-lg max-w-2xl mx-auto leading-relaxed">
+          Specialized logistics lane connecting our {route.originName} hub to the {
+            route.destProvince
+          } region. Complete door-to-door service with managed customs clearance.
+        </p>
+      </div>
+    </section>
+
+    {/* SERVICE CARDS */}
+    <section class="max-w-6xl mx-auto px-6 -mt-16 pb-24">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Logistics Status Card */}
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+          <div
+            class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6"
+          >
+            <Search size={24} />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Live Tracking</h3>
+          <p class="text-slate-500 text-sm">
+            Due to varying port schedules, we provide individual tracking for every shipment from {
+              route.originName
+            }.
+          </p>
+        </div>
+
+        {/* Security Card */}
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+          <div
+            class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mb-6"
+          >
+            <ShieldCheck size={24} />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Safe Handling</h3>
+          <p class="text-slate-500 text-sm">
+            Goods are securely packed in Jebel Ali and offloaded directly at our {route.destName} hub.
+          </p>
+        </div>
+
+        {/* Collection Card */}
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+          <div
+            class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 mb-6"
+          >
+            <MapPin size={24} />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Local Pickup</h3>
+          <p class="text-slate-500 text-sm">
+            Daily collection available across all zones in {route.originName} for this route.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
+            The Professional Way to Ship to {route.destName}
+          </h2>
+          <p class="text-slate-600 mb-8 text-lg">
+            We understand that shipping to Pakistan requires patience and precision. Instead of
+            offering "fixed dates," we focus on **safety and successful clearance**. Your cargo is
+            handled by specialists who know the {route.originName} to {route.destName} route inside out.
+          </p>
+          <ul class="space-y-4">
+            {
+              ['Professional Loading', 'Customs Paperwork Included', 'Doorstep Delivery in PK'].map(
+                (item) => (
+                  <li class="flex items-center gap-3 font-bold text-slate-800">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full" />
+                    {item}
+                  </li>
+                )
+              )
+            }
+          </ul>
+        </div>
+
+        <div class="bg-slate-900 rounded-[3rem] p-10 text-white">
+          <h3 class="text-2xl font-bold mb-6 italic">Get a custom quote</h3>
+          <p class="text-slate-400 mb-8">
+            Rates depend on the item type (Electronics, Clothing, Household) and current sea/air
+            freight costs.
+          </p>
+          <div class="space-y-4">
+            <a
+              href={`https://wa.me/${settings?.whatsappNumber}?text=Hi, I want a quote for ${route.originName} to ${route.destName} cargo.`}
+              class="flex items-center justify-center gap-2 w-full py-4 bg-green-600 rounded-2xl font-black hover:bg-green-700 transition-all"
+            >
+              WhatsApp Rate Inquiry
+            </a>
+            <a
+              href={`tel:${settings?.phone}`}
+              class="flex items-center justify-center gap-2 w-full py-4 border border-white/20 rounded-2xl font-bold hover:bg-white/10 transition-all"
+            >
+              Call {route.originName} Office
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

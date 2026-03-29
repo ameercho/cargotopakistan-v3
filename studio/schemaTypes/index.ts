@@ -9,7 +9,8 @@ import faqItem from './objects/faqItem'
 import homepage from './homepage'
 import contactChannel from './contactChannel'
 import blockContent from './blockContent'
-import page from './page'
+import location from './location' // Updated from 'page' to 'location'
+import route from './route'
 
 export const schemaTypes = [
   // Settings & Global
@@ -21,8 +22,11 @@ export const schemaTypes = [
   service,
   rateCard,
 
+  // Logistics & SEO (New Category)
+  location,
+  route,
+
   // Blog & Content
-  page,
   post,
   author,
 
