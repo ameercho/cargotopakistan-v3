@@ -11,12 +11,14 @@ import contactChannel from './contactChannel'
 import blockContent from './blockContent'
 import location from './location' // Updated from 'page' to 'location'
 import route from './route'
+import companyPage from './companyPage'
 
 export const schemaTypes = [
   // Settings & Global
   siteSettings,
   homepage,
   contactChannel,
+  companyPage,
 
   // Core Business
   service,

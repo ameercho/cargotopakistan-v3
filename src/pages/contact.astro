@@ -4,38 +4,31 @@ import Layout from '../layouts/Layout.astro';
 import { Mail, Phone, MapPin, Clock, MessageSquare, ShieldCheck } from 'lucide-react';
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
-const contactData = await sanityClient.fetch(`*[_id == "contact-page"][0]`);
+// Fetch specifically the 'contact' type company page
+const contactData = await sanityClient.fetch(
+  `*[_type == "companyPage" && pageType == "contact"][0]`
+);
 
 const contactSchema = {
   '@context': 'https://schema.org',
   '@type': 'ContactPage',
   mainEntity: {
     '@type': 'LocalBusiness',
-    name: settings?.businessName || 'PakCargo.ae',
-    image: 'https://pakcargo.ae/og-default.jpg',
+    name: settings?.businessName || 'cargotopakistan.ae',
     address: {
       '@type': 'PostalAddress',
       streetAddress: settings?.address,
       addressLocality: 'Dubai',
       addressCountry: 'AE',
     },
-    geo: settings?.geoCoordinates
-      ? {
-          '@type': 'GeoCoordinates',
-          latitude: settings.geoCoordinates.lat,
-          longitude: settings.geoCoordinates.lng,
-        }
-      : undefined,
     telephone: settings?.phone,
-    openingHours: 'Mo-Su 00:00-23:59',
   },
 };
 ---
 
 <Layout
-  title={`${contactData?.seoTitle || 'Contact Us'} | ${settings?.businessName || 'PakCargo.ae'}`}
-  description={contactData?.metaDescription ||
-    'Contact our cargo specialists in Dubai and Abu Dhabi for the best rates to Pakistan.'}
+  title={`${contactData?.seoTitle || 'Contact Us'} | ${settings?.businessName || 'cargotopakistan.ae'}`}
+  description={contactData?.metaDescription || 'Contact our specialists for cargo to Pakistan.'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(contactSchema)} slot="head" />
 
@@ -45,10 +38,7 @@ const contactSchema = {
         {contactData?.heroTitle || 'Get a Fast Quote'}
       </h1>
       <p class="text-blue-200 text-lg max-w-2xl mx-auto">
-        {
-          contactData?.heroSubtitle ||
-            'Our specialists are ready to help with your sea and air cargo needs 24/7.'
-        }
+        {contactData?.heroSubtitle || 'Our specialists are ready 24/7.'}
       </p>
     </section>
 
@@ -61,93 +51,36 @@ const contactSchema = {
               class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-500 transition-all group"
             >
               <div
-                class="p-4 bg-blue-50 rounded-2xl w-fit mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors"
+                class="p-4 bg-blue-50 rounded-2xl w-fit mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
               >
                 <Phone size={24} />
               </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-2">Call Us</h3>
-              <p class="text-slate-600 mb-4 text-sm font-medium">Direct line for bookings</p>
+              <h3 class="text-xl font-bold text-slate-900 mb-2">Main Office</h3>
               <span class="text-blue-600 font-bold text-lg">{settings?.phone}</span>
             </a>
 
-            <a
-              href={`https://wa.me/${settings?.whatsappNumber}?text=Hi, I need a quote for cargo to Pakistan.`}
-              class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-green-500 transition-all group"
-            >
-              <div
-                class="p-4 bg-green-50 rounded-2xl w-fit mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors text-green-600"
-              >
-                <MessageSquare size={24} />
-              </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-2">WhatsApp Chat</h3>
-              <p class="text-slate-600 mb-4 text-sm font-medium">Get a quote in 2 minutes</p>
-              <span class="text-green-600 font-bold text-lg">Chat Now</span>
-            </a>
+            {
+              contactData?.additionalContacts?.map((contact) => (
+                <a
+                  href={`tel:${contact.number}`}
+                  class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-500 transition-all group"
+                >
+                  <div class="p-4 bg-slate-50 rounded-2xl w-fit mb-6 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Phone size={24} />
+                  </div>
+                  <h3 class="text-xl font-bold text-slate-900 mb-2">{contact.label}</h3>
+                  <span class="text-blue-600 font-bold text-lg">{contact.number}</span>
+                </a>
+              ))
+            }
           </div>
 
           <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-            <h2 class="text-3xl font-black text-slate-900 mb-8">Our Operations</h2>
-            <div class="space-y-8">
-              <div class="flex gap-6">
-                <div class="shrink-0 p-4 bg-slate-100 rounded-2xl h-fit">
-                  <MapPin class="text-slate-600" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-lg text-slate-900 mb-1">Main Warehouse & Office</h4>
-                  <p class="text-slate-600 leading-relaxed">{settings?.address}</p>
-                </div>
-              </div>
-              <div class="flex gap-6">
-                <div class="shrink-0 p-4 bg-slate-100 rounded-2xl h-fit">
-                  <Clock class="text-slate-600" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-lg text-slate-900 mb-1">Working Hours</h4>
-                  <p class="text-slate-600 leading-relaxed">
-                    {contactData?.workingHours || '24 Hours / 7 Days a Week Support'}
-                  </p>
-                </div>
-              </div>
-              <div class="flex gap-6">
-                <div class="shrink-0 p-4 bg-slate-100 rounded-2xl h-fit">
-                  <ShieldCheck class="text-slate-600" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-lg text-slate-900 mb-1">Licensing</h4>
-                  <p class="text-slate-600 leading-relaxed">
-                    Trade License: {settings?.tradeLicense}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-6">
-          <div
-            class="bg-blue-600 rounded-[2.5rem] p-8 text-white sticky top-24 shadow-2xl shadow-blue-200"
-          >
-            <h3 class="text-2xl font-bold mb-4">
-              {contactData?.sidebarTitle || 'Fastest Tracking'}
-            </h3>
-            <p class="text-blue-100 mb-8 leading-relaxed">
-              {
-                contactData?.sidebarText ||
-                  'Need to check your shipment status? Please have your Booking ID ready when calling.'
-              }
-            </p>
-            <div class="space-y-4">
-              <div class="p-4 bg-white/10 rounded-2xl border border-white/10">
-                <p class="text-xs uppercase tracking-widest font-bold text-blue-300 mb-1">
-                  Response Time
-                </p>
-                <p class="font-bold">Under 5 Minutes</p>
-              </div>
-              <div class="p-4 bg-white/10 rounded-2xl border border-white/10">
-                <p class="text-xs uppercase tracking-widest font-bold text-blue-300 mb-1">
-                  Expert Advice
-                </p>
-                <p class="font-bold">Customs Clearance Support</p>
+            <div class="flex gap-6 mb-8">
+              <div class="shrink-0 p-4 bg-slate-100 rounded-2xl h-fit"><MapPin /></div>
+              <div>
+                <h4 class="font-bold text-lg">Jebel Ali Warehouse</h4>
+                <p class="text-slate-600">{settings?.address}</p>
               </div>
             </div>
           </div>

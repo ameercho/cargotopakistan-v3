@@ -11,10 +11,10 @@ import PartnerLogos from '../components/PartnerLogos.astro';
 import FaqSection from '../components/FaqSection.astro';
 import { MapPin } from 'lucide-react';
 
-// 1. Fetch settings and Homepage data
-const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+// 1. Optimized Fetch: Query by ID for stability
+const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
 
-const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
+const homeData = await sanityClient.fetch(`*[_id == "homepage"][0]{
   ...,
   featuredServices[]->,
   featuredTrustPoints->,
@@ -27,7 +27,7 @@ const homeData = await sanityClient.fetch(`*[_type == "homepage"][0]{
   }
 }`);
 
-// 2. Services Logic
+// 2. Services Logic - Fallback to all services if none featured
 let services = homeData?.featuredServices;
 if (!services || services.length === 0) {
   services = await sanityClient.fetch(`*[_type == "service"] | order(order asc)`);
@@ -37,11 +37,10 @@ const rates = await sanityClient.fetch(`*[_type == "rateCard"] | order(order asc
 const trustData =
   homeData?.featuredTrustPoints || (await sanityClient.fetch(`*[_type == "trustPoints"][0]`));
 
-// 3. FIX: Partners separation logic based on your partner.ts schema
+// 3. Partners Separation
 const allPartners =
   homeData?.featuredPartners || (await sanityClient.fetch(`*[_type == "partner"]`));
 
-// Logic: Carriers and Hubs are Global; Last-mile and Customs (in this context) are Local
 const globalPartners = allPartners?.filter((p) => p.type === 'carrier' || p.type === 'hub') || [];
 const localPartners =
   allPartners?.filter((p) => p.type === 'last-mile' || p.type === 'customs') || [];
@@ -89,7 +88,9 @@ const businessSchema = {
 
     <section id="rates" class="py-20 bg-white border-t border-slate-50">
       <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-4xl font-black text-slate-900 mb-4 italic">Competitive Shipping Rates</h2>
+        <h2 class="text-4xl font-black text-slate-900 mb-4 italic uppercase">
+          Competitive Shipping Rates
+        </h2>
         <p class="text-slate-600 text-lg mb-12">
           Verified shipping pricing for {new Date().getFullYear()} shipments from UAE to Pakistan.
         </p>
@@ -128,7 +129,7 @@ const businessSchema = {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           {
             serviceAreas.map((area) => (
-              <div class="p-8 bg-white rounded-3xl border border-slate-200 text-center hover:border-blue-500 hover:shadow-lg transition-all">
+              <div class="p-8 bg-white rounded-3xl border border-slate-200 text-center hover:border-blue-500 hover:shadow-lg transition-all cursor-default">
                 <span class="text-2xl font-black text-slate-900">{area}</span>
               </div>
             ))
@@ -163,13 +164,13 @@ const businessSchema = {
         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
           <a
             href={`https://wa.me/${settings?.whatsappNumber}`}
-            class="w-full sm:w-auto px-12 py-5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all text-xl"
+            class="w-full sm:w-auto px-12 py-5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl transition-all text-xl text-center"
           >
             WhatsApp Estimate
           </a>
           <a
             href={`tel:${settings?.phone}`}
-            class="w-full sm:w-auto px-12 py-5 bg-blue-600 hover:border-blue-700 text-white font-bold rounded-2xl transition-all text-xl"
+            class="w-full sm:w-auto px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all text-xl text-center"
           >
             Call Specialist
           </a>

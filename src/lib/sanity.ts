@@ -1,16 +1,16 @@
 import { createClient } from '@sanity/client';
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url'; // Updated import
 
-// 1. Define the client directly here instead of importing it
+// 1. Define the client directly
 export const sanityClient = createClient({
-  projectId: 'vx91r8qj', // <--- REPLACE THIS with your actual Project ID from sanity.config.ts
+  projectId: 'vx91r8qj',
   dataset: 'production',
   apiVersion: '2024-03-19',
-  useCdn: false, // Set to false for the most up-to-date content
+  useCdn: false,
 });
 
-// 2. Setup the image builder
-const builder = imageUrlBuilder(sanityClient);
+// 2. Setup the image builder using the new named function
+const builder = createImageUrlBuilder(sanityClient);
 
 export function urlFor(source: any) {
   return builder.image(source);

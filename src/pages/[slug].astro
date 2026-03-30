@@ -2,7 +2,7 @@
 import { sanityClient } from '../lib/sanity';
 import Layout from '../layouts/Layout.astro';
 import PortableText from '../components/PortableText.astro';
-import { Table, MapPin, CheckCircle2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 export async function getStaticPaths() {
   if (!sanityClient) {
@@ -10,15 +10,16 @@ export async function getStaticPaths() {
     return [];
   }
 
-  const data = await sanityClient.fetch(`*[_type in ["page", "service"]]`);
+  // Included 'companyPage' in the fetch
+  const data = await sanityClient.fetch(`*[_type in ["page", "service", "companyPage"]]`);
 
   return data.map((item: any) => ({
-    params: { slug: item.slug?.current || 'unknown' },
+    // Use the slug from Sanity, or fallback to the pageType for legal pages
+    params: { slug: item.slug?.current || item.pageType || 'unknown' },
     props: { item },
   }));
 }
 
-// Fixed: Explicitly casting Astro.props as any to stop the 'never' error
 const { item } = Astro.props as { item: any };
 
 if (!item) {
@@ -26,78 +27,106 @@ if (!item) {
 }
 
 const isService = item._type === 'service';
+const isLegal = item.pageType === 'privacy' || item.pageType === 'terms';
 
-// Safe mapping using optional chaining
-const displayTitle = item.heroTitle || item.title || 'Cargo Service';
-const displayDescription = item.heroSubtitle || item.description || item.metaDescription || '';
+// Dynamic data mapping
+const displayTitle = item.heroTitlePart1 || item.heroTitle || item.title || 'Cargo Service';
+const accentTitle = item.heroTitlePart2 || '';
+const displayDescription =
+  item.heroDescription || item.heroSubtitle || item.description || item.metaDescription || '';
 const displayContent = item.content || item.details || [];
 const displayCities = item.cityHighlights || item.serviceableAreas || [];
 ---
 
 <Layout
-  title={item.seoTitle || displayTitle}
+  title={`${item.seoTitle || displayTitle} | cargotopakistan.ae`}
   description={item.metaDescription || displayDescription}
 >
-  <main class="relative pt-32 pb-20 bg-slate-50 min-h-screen">
-    <div class="max-w-5xl mx-auto px-6">
-      <header class="mb-12">
+  <main class={`relative pt-32 pb-20 ${isLegal ? 'bg-slate-50' : 'bg-white'} min-h-screen`}>
+    <div class="max-w-6xl mx-auto px-6">
+      <header class={`mb-12 ${isLegal ? 'text-center max-w-3xl mx-auto' : ''}`}>
         <div
-          class="flex items-center gap-3 text-blue-600 font-bold mb-4 uppercase tracking-widest text-sm"
+          class="flex items-center gap-3 text-blue-600 font-bold mb-4 uppercase tracking-widest text-sm justify-center lg:justify-start"
         >
           <span class="px-3 py-1 bg-blue-100 rounded-lg">
-            {isService ? 'Service' : 'Professional Logistics'}
+            {isLegal ? 'Legal Document' : isService ? 'Service' : 'Logistics'}
           </span>
         </div>
         <h1 class="text-4xl md:text-7xl font-black text-slate-900 mb-6 tracking-tight leading-none">
           {displayTitle}
+          {accentTitle && <span class="text-blue-600">{accentTitle}</span>}
         </h1>
-        <p class="text-xl text-slate-600 max-w-2xl leading-relaxed">
+        <p class="text-xl text-slate-600 leading-relaxed">
           {displayDescription}
         </p>
       </header>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div class="lg:col-span-2 space-y-12">
+      <div class={`grid grid-cols-1 ${isLegal ? '' : 'lg:grid-cols-3'} gap-12`}>
+        <div class={isLegal ? 'max-w-4xl mx-auto w-full' : 'lg:col-span-2'}>
           <article
             class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate prose-lg max-w-none"
           >
-            <PortableText value={displayContent} />
+            {
+              displayContent.length > 0 ? (
+                <PortableText value={displayContent} />
+              ) : (
+                <p class="text-slate-400 italic">
+                  Content is being updated by our Jebel Ali team...
+                </p>
+              )
+            }
           </article>
         </div>
 
-        <div class="space-y-8">
-          {
-            displayCities.length > 0 && (
-              <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
-                <h3 class="text-xl font-black text-blue-900 mb-6 flex items-center gap-2">
-                  <MapPin className="text-blue-600" />{' '}
-                  {isService ? 'Service Areas' : 'Direct Delivery To'}
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                  {displayCities.map((area: string) => (
-                    <span class="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-xl border border-blue-200">
-                      {area}
-                    </span>
-                  ))}
+        {
+          !isLegal && (
+            <div class="space-y-8">
+              {displayCities.length > 0 && (
+                <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
+                  <h3 class="text-xl font-black text-blue-900 mb-6 flex items-center gap-2">
+                    <MapPin className="text-blue-600" size={20} />
+                    Service Areas
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    {displayCities.map((area: string) => (
+                      <span class="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-xl border border-blue-200">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-          }
+              )}
 
-          <div class="bg-slate-900 p-8 rounded-[2rem] text-center text-white">
-            <h3 class="text-2xl font-black mb-4">Professional Quote</h3>
-            <p class="text-slate-400 mb-6">
-              Contact our Jebel Ali team for reliable cargo management.
-            </p>
-            <a
-              href="/contact"
-              class="block w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black transition-all"
-            >
-              Request Consultation
-            </a>
-          </div>
-        </div>
+              <div class="bg-slate-900 p-8 rounded-[2rem] text-center text-white">
+                <h3 class="text-2xl font-black mb-4">Get a Quote</h3>
+                <p class="text-slate-400 mb-6">Expert cargo handling from UAE to Pakistan.</p>
+                <a
+                  href="/contact"
+                  class="block w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black transition-all"
+                >
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          )
+        }
       </div>
     </div>
   </main>
 </Layout>
+
+<style is:global>
+  /* Professional styling for legal and service text */
+  .prose h2 {
+    @apply text-2xl font-black text-slate-900 mt-10 mb-4 tracking-tight;
+  }
+  .prose p {
+    @apply mb-6 text-slate-600 leading-relaxed;
+  }
+  .prose strong {
+    @apply text-slate-900 font-bold;
+  }
+  .prose ul {
+    @apply list-disc pl-6 mb-6 text-slate-600;
+  }
+</style>
