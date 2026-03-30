@@ -3,7 +3,9 @@ import { sanityClient } from 'sanity:client';
 import Layout from '../../layouts/Layout.astro';
 import { urlFor } from '../../lib/sanity';
 
-// 1. Fetch all blog posts from Sanity (Ordered by Date)
+// 1. Fetch site settings and blog posts from Sanity (Ordered by Date)
+const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
+
 const posts = await sanityClient.fetch(`
   *[_type == "post"] | order(publishedAt desc) {
     title,
@@ -21,8 +23,12 @@ const remainingPosts = posts.slice(1);
 ---
 
 <Layout
-  title="Logistics & Shipping Blog | PakCargo.ae UAE"
-  description="Expert guides on sea and air cargo from Dubai, Abu Dhabi, and Sharjah to Pakistan. Get the latest shipping rates and customs advice."
+  title={homeData?.seoTitle
+    ? `${homeData.seoTitle} | ${settings?.businessName || 'Cargo to Pakistan'}`
+    : `${settings?.businessName || 'Cargo to Pakistan'} Blog`}
+  description={homeData?.seoDescription ||
+    settings?.description ||
+    'Expert guides on sea and air cargo from Dubai, Abu Dhabi, and Sharjah to Pakistan. Get the latest shipping rates and customs advice.'}
 >
   <section class="bg-slate-50 py-20">
     <div class="max-w-7xl mx-auto px-6">

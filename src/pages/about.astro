@@ -103,7 +103,10 @@ const stats = aboutData?.stats || [
               aboutData?.mainImage ? (
                 <img
                   src={urlFor(aboutData.mainImage).width(800).url()}
-                  alt="Warehouse Operations"
+                  alt={
+                    aboutData.mainImage?.alt ||
+                    `${settings?.businessName || 'Cargo To Pakistan'} warehouse operations image`
+                  }
                   class="w-full h-full object-cover"
                 />
               ) : (

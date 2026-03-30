@@ -4,6 +4,7 @@
  * Focused on a clean, transparent, high-visibility design.
  */
 import { Ship } from 'lucide-react';
+import { sanityClient } from 'sanity:client';
 
 interface Props {
   // Option for using the logo on Light (Header) vs Dark (Footer) backgrounds.
@@ -11,6 +12,9 @@ interface Props {
 }
 
 const { variant = 'light' } = Astro.props;
+
+const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
+const brandName = settings?.businessName || 'Cargo to Pakistan';
 
 // Logic to switch ONLY the component colors based on the variant
 const iconColor = variant === 'light' ? 'text-slate-900' : 'text-white';
@@ -26,12 +30,12 @@ const textMainColor = variant === 'light' ? 'text-slate-900' : 'text-white';
   </div>
 
   <span class:list={['text-2xl font-black tracking-tight', textMainColor]}>
-    <span class="text-green-600">Cargo</span> to Pakistan
+    {brandName}
   </span>
 </div>
 
 <style>
-  /* Ensure the name "PakCargo.ae" stays together on one line on small screens */
+  /* Ensure the brand name stays together on one line on small screens */
   span {
     white-space: nowrap;
   }

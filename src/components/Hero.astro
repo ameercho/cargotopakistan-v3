@@ -3,7 +3,7 @@ import { sanityClient } from 'sanity:client';
 import { ShieldCheck, Truck, Clock, Phone, MessageSquare } from 'lucide-react';
 
 // 1. Accept the dynamic content passed from index.astro
-const { title, subtitle } = Astro.props;
+const { title, subtitle, image } = Astro.props;
 
 // 2. Fetch global settings for WhatsApp/Phone
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
@@ -52,8 +52,10 @@ const displaySubtitle =
           class="rounded-3xl overflow-hidden shadow-2xl border-8 border-slate-50 bg-slate-100 aspect-video lg:aspect-square"
         >
           <img
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800"
-            alt="Logistics and Cargo Service"
+            src={image?.asset?.url ||
+              'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800'}
+            alt={image?.alt ||
+              `${settings?.businessName || 'Cargo To Pakistan'} logistics service image`}
             class="w-full h-full object-cover"
           />
         </div>

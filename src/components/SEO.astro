@@ -12,8 +12,14 @@ const {
 } = Astro.props;
 
 // Use the dynamic title from Sanity if none is provided in the page
-const metaTitle = title || settings?.title || "Cargo to Pakistan | Professional Logistics";
-const metaDescription = description || settings?.description || "Reliable cargo services from UAE to Pakistan.";
+const metaTitle =
+  title ||
+  settings?.title ||
+  `${settings?.businessName || 'Cargo to Pakistan'} | Professional Logistics`;
+const metaDescription =
+  description ||
+  settings?.description ||
+  `Reliable cargo services from ${settings?.siteUrl || 'https://cargotopakistan.ae'} to Pakistan.`;
 ---
 
 <meta charset="utf-8" />

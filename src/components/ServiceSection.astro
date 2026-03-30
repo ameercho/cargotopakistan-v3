@@ -1,6 +1,9 @@
 ---
 const { services = [] } = Astro.props;
+import { sanityClient } from 'sanity:client';
 import { Ship, Plane, FileText, Home, Package, Truck, ShieldCheck, MapPin } from 'lucide-react';
+
+const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
 
 const iconMap = {
   ship: Ship,
@@ -28,7 +31,9 @@ const sortedServices =
           Core Logistics Operations
         </h2>
         <p class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
-          Professional <span class="text-blue-600">Pakistan Cargo</span> & Pak Cargo Services
+          Professional <span class="text-blue-600"
+            >{settings?.businessName || 'Cargo to Pakistan'}</span
+          > Services
         </p>
       </div>
       <p
