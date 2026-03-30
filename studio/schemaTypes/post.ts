@@ -11,13 +11,6 @@ export default defineType({
   ],
   fields: [
     defineField({
-      name: 'order',
-      title: 'Display Priority',
-      type: 'number',
-      group: 'content',
-      initialValue: 99,
-    }),
-    defineField({
       name: 'title',
       title: 'Post Title',
       type: 'string',
@@ -32,12 +25,19 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'publishedAt',
+      title: 'Published At',
+      type: 'datetime',
+      group: 'content',
+      initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
       name: 'author',
       title: 'Expert Author',
       type: 'reference',
       to: [{type: 'author'}],
       group: 'content',
-      validation: (Rule) => Rule.required(), // Essential for E-E-A-T
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'topic',
@@ -87,6 +87,13 @@ export default defineType({
       type: 'text',
       group: 'seo',
       rows: 3,
+    }),
+    defineField({
+      name: 'targetKeywords',
+      title: 'Target Keywords (For Ads)',
+      type: 'string',
+      description: 'e.g., cargo to lahore, dubai to pakistan rates',
+      group: 'seo',
     }),
     // Rich Snippets
     defineField({

@@ -3,11 +3,11 @@ import { sanityClient } from 'sanity:client';
 import Layout from '../../layouts/Layout.astro';
 import { urlFor } from '../../lib/sanity';
 
-// 1. Fetch site settings and blog posts from Sanity (Ordered by Date)
-const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
-
-const posts = await sanityClient.fetch(`
-  *[_type == "post"] | order(publishedAt desc) {
+// 1. Fetch data (Fixed: Added homeData to resolve Vercel build error)
+const data = await sanityClient.fetch(`{
+  "settings": *[_id == "siteSettings"][0],
+  "homeData": *[_type == "homepage"][0],
+  "posts": *[_type == "post"] | order(publishedAt desc) {
     title,
     slug,
     mainImage,
@@ -15,20 +15,24 @@ const posts = await sanityClient.fetch(`
     metaDescription,
     "authorName": author->name
   }
-`);
+}`);
 
-// 2. Identify the "Featured Post" (the most recent one)
+const { settings, homeData, posts } = data;
+
 const featuredPost = posts[0];
 const remainingPosts = posts.slice(1);
+
+// SEO Logic
+const pageTitle = homeData?.seoTitle
+  ? `${homeData.seoTitle} | ${settings?.businessName || 'Cargo to Pakistan'}`
+  : `Shipping Insights & Guides | ${settings?.businessName || 'Cargo to Pakistan'}`;
 ---
 
 <Layout
-  title={homeData?.seoTitle
-    ? `${homeData.seoTitle} | ${settings?.businessName || 'Cargo to Pakistan'}`
-    : `${settings?.businessName || 'Cargo to Pakistan'} Blog`}
+  title={pageTitle}
   description={homeData?.seoDescription ||
     settings?.description ||
-    'Expert guides on sea and air cargo from Dubai, Abu Dhabi, and Sharjah to Pakistan. Get the latest shipping rates and customs advice.'}
+    'Expert guides on sea and air cargo from Dubai to Pakistan.'}
 >
   <section class="bg-slate-50 py-20">
     <div class="max-w-7xl mx-auto px-6">
@@ -37,8 +41,8 @@ const remainingPosts = posts.slice(1);
           Shipping <span class="text-blue-600">Insights</span>
         </h1>
         <p class="text-lg text-slate-600 leading-relaxed">
-          Stay updated with the latest cargo rates, customs regulations, and door-to-door delivery
-          guides for the UAE to Pakistan corridor.
+          Latest cargo rates, customs regulations, and door-to-door delivery guides for the UAE to
+          Pakistan corridor.
         </p>
       </div>
 
@@ -52,7 +56,7 @@ const remainingPosts = posts.slice(1);
               <div class="aspect-[16/10] overflow-hidden">
                 <img
                   src={urlFor(featuredPost.mainImage).width(1000).height(700).url()}
-                  alt={featuredPost.mainImage.alt}
+                  alt={featuredPost.mainImage?.alt || featuredPost.title}
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
@@ -89,7 +93,7 @@ const remainingPosts = posts.slice(1);
               <a href={`/blog/${post.slug.current}`} class="block aspect-[16/10] overflow-hidden">
                 <img
                   src={urlFor(post.mainImage).width(600).height(400).url()}
-                  alt={post.mainImage.alt}
+                  alt={post.mainImage?.alt || post.title}
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </a>
