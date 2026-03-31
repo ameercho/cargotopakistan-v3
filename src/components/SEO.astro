@@ -1,25 +1,21 @@
 ---
 import { sanityClient } from "sanity:client";
 
-// Fetch global settings for the domain (Title, Meta, Favicon)
-const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+const settings = await sanityClient.fetch(`*[_id == "siteSettings"][0]`);
 
 const { 
   title, 
   description, 
-  image = "/og-image.jpg", // Default social sharing image
+  image = "/og-image.jpg", 
   canonicalURL = Astro.url 
 } = Astro.props;
 
-// Use the dynamic title from Sanity if none is provided in the page
-const metaTitle =
-  title ||
-  settings?.title ||
-  `${settings?.businessName || 'Cargo to Pakistan'} | Professional Logistics`;
-const metaDescription =
-  description ||
-  settings?.description ||
-  `Reliable cargo services from ${settings?.siteUrl || 'https://cargotopakistan.ae'} to Pakistan.`;
+// LOGIC: If a specific title is passed, use it. Otherwise, use Sanity global title.
+const metaTitle = title 
+  ? `${title} | ${settings?.businessName || 'Cargo to Pakistan'}` 
+  : (settings?.title || `${settings?.businessName || 'Cargo to Pakistan'} | Professional Logistics`);
+
+const metaDescription = description || settings?.description || `Reliable cargo services from ${settings?.siteUrl || 'https://cargotopakistan.ae'} to Pakistan.`;
 ---
 
 <meta charset="utf-8" />
@@ -40,10 +36,8 @@ const metaDescription =
 <meta property="og:image" content={new URL(image, Astro.url)} />
 
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={metaTitle} />
 <meta property="twitter:description" content={metaDescription} />
-<meta property="twitter:image" content={new URL(image, Astro.url)} />
 
 {settings?.gtmId && (
   <script is:inline define:vars={{ id: settings.gtmId }}>

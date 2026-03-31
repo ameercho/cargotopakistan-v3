@@ -16,6 +16,9 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
+
+// Fetch Contact Channels for correct numbers
+const contactData = await sanityClient.fetch(`*[_type == "contactChannel" && isActive == true]`);
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
 const service = await sanityClient.fetch(
@@ -29,6 +32,9 @@ const service = await sanityClient.fetch(
   }`,
   { slug }
 );
+
+const whatsapp = contactData.find((c) => c.platform === 'whatsapp')?.value;
+const phone = contactData.find((c) => c.platform === 'phone' || c.platform === 'landline')?.value;
 
 const iconMap = {
   ship: Ship,
@@ -239,18 +245,26 @@ const combinedSchema = {
             </ul>
 
             <div class="space-y-4">
-              <a
-                href={`https://wa.me/${settings?.whatsappNumber}`}
-                class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200"
-              >
-                <span class="text-lg">WhatsApp Quote</span>
-              </a>
-              <a
-                href={`tel:${settings?.phone}`}
-                class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-              >
-                <span>Call Specialist</span>
-              </a>
+              {
+                whatsapp && (
+                  <a
+                    href={`https://wa.me/${whatsapp}`}
+                    class="flex items-center justify-center gap-3 w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200"
+                  >
+                    <span class="text-lg">WhatsApp Quote</span>
+                  </a>
+                )
+              }
+              {
+                phone && (
+                  <a
+                    href={`tel:${phone}`}
+                    class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                  >
+                    <span>Call Specialist</span>
+                  </a>
+                )
+              }
             </div>
           </div>
         </div>

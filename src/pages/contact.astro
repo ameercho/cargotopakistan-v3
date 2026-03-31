@@ -1,13 +1,27 @@
 ---
 import { sanityClient } from 'sanity:client';
 import Layout from '../layouts/Layout.astro';
-import { Mail, Phone, MapPin, Clock, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, MessageSquare, ShieldCheck, ChevronRight } from 'lucide-react';
+import PortableText from '../components/PortableText.astro';
+import FaqSection from '../components/FaqSection.astro';
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
-// Fetch specifically the 'contact' type company page
-const contactData = await sanityClient.fetch(
-  `*[_type == "companyPage" && pageType == "contact"][0]`
+const contactChannels = await sanityClient.fetch(
+  `*[_type == "contactChannel" && isActive == true]`
 );
+const contactData = await sanityClient.fetch(
+  `*[_type == "companyPage" && pageType == "contact"][0]{
+    ...,
+    additionalContacts[] { label, number },
+    locations[] { title, address, mapUrl },
+    faqs[] { question, answer }
+  }`
+);
+
+const whatsapp = contactChannels.find((c) => c.platform === 'whatsapp')?.value;
+const mainPhone = contactChannels.find(
+  (c) => c.platform === 'phone' || c.platform === 'landline'
+)?.value;
 
 const contactSchema = {
   '@context': 'https://schema.org',
@@ -21,69 +35,156 @@ const contactSchema = {
       addressLocality: 'Dubai',
       addressCountry: 'AE',
     },
-    telephone: settings?.phone,
+    telephone: mainPhone,
   },
 };
 ---
 
 <Layout
-  title={`${contactData?.seoTitle || 'Contact Us'} | ${settings?.businessName || 'cargotopakistan.ae'}`}
-  description={contactData?.metaDescription || 'Contact our specialists for cargo to Pakistan.'}
+  title={contactData?.seoTitle || 'Contact Us | Pakistan Cargo Contact'}
+  description={contactData?.metaDescription ||
+    'Get the best rates for cargo to pakistan near me. Contact our experts for safe and fast door-to-door delivery from UAE.'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(contactSchema)} slot="head" />
 
-  <main class="bg-slate-50">
-    <section class="bg-slate-900 pt-32 pb-20 px-6 text-center">
-      <h1 class="text-4xl md:text-6xl font-black text-white mb-4">
-        {contactData?.heroTitle || 'Get a Fast Quote'}
-      </h1>
-      <p class="text-blue-200 text-lg max-w-2xl mx-auto">
-        {contactData?.heroSubtitle || 'Our specialists are ready 24/7.'}
-      </p>
+  <main class="bg-slate-50 min-h-screen">
+    <section class="bg-slate-900 pt-32 pb-32 px-6 text-center relative overflow-hidden">
+      <div
+        class="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"
+      >
+      </div>
+      <div class="relative z-10">
+        <h1 class="text-4xl md:text-7xl font-black text-white mb-6 tracking-tight">
+          {contactData?.heroTitle || 'Pakistan Cargo Contact'}
+        </h1>
+        <p class="text-blue-200 text-lg md:text-xl max-w-2xl mx-auto font-medium">
+          {
+            contactData?.heroSubtitle ||
+              'Find the best pak cargo near me. Reliable door-to-door service starts with a single call.'
+          }
+        </p>
+      </div>
     </section>
 
-    <div class="max-w-6xl mx-auto px-6 -mt-10 pb-20">
+    <div class="max-w-7xl mx-auto px-6 -mt-16 pb-24 relative z-20">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-8">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <a
-              href={`tel:${settings?.phone}`}
-              class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-500 transition-all group"
-            >
-              <div
-                class="p-4 bg-blue-50 rounded-2xl w-fit mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
-              >
-                <Phone size={24} />
-              </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-2">Main Office</h3>
-              <span class="text-blue-600 font-bold text-lg">{settings?.phone}</span>
-            </a>
+            {
+              mainPhone && (
+                <a
+                  href={`tel:${mainPhone}`}
+                  class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-blue-500 transition-all group"
+                >
+                  <div class="p-4 bg-blue-50 rounded-2xl w-fit mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Phone size={28} />
+                  </div>
+                  <h3 class="text-xl font-bold text-slate-900 mb-2">Main Helpline</h3>
+                  <p class="text-blue-600 font-black text-2xl tracking-tight">{mainPhone}</p>
+                  <p class="text-slate-400 text-xs mt-2 uppercase font-bold tracking-widest">
+                    Available 24/7
+                  </p>
+                </a>
+              )
+            }
+
+            {
+              whatsapp && (
+                <a
+                  href={`https://wa.me/${whatsapp}`}
+                  class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-green-500 transition-all group"
+                >
+                  <div class="p-4 bg-green-50 rounded-2xl w-fit mb-6 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                    <MessageSquare size={28} />
+                  </div>
+                  <h3 class="text-xl font-bold text-slate-900 mb-2">WhatsApp Support</h3>
+                  <p class="text-green-600 font-black text-2xl tracking-tight">Instant Chat</p>
+                  <p class="text-slate-400 text-xs mt-2 uppercase font-bold tracking-widest">
+                    For Quick Quotes
+                  </p>
+                </a>
+              )
+            }
 
             {
               contactData?.additionalContacts?.map((contact) => (
                 <a
                   href={`tel:${contact.number}`}
-                  class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-500 transition-all group"
+                  class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 hover:border-blue-500 transition-all group"
                 >
-                  <div class="p-4 bg-slate-50 rounded-2xl w-fit mb-6 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <div class="p-4 bg-slate-50 rounded-2xl w-fit mb-6 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <Phone size={24} />
                   </div>
-                  <h3 class="text-xl font-bold text-slate-900 mb-2">{contact.label}</h3>
-                  <span class="text-blue-600 font-bold text-lg">{contact.number}</span>
+                  <h3 class="text-lg font-bold text-slate-800 mb-1">{contact.label}</h3>
+                  <p class="text-slate-600 font-bold">{contact.number}</p>
                 </a>
               ))
             }
           </div>
 
-          <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
-            <div class="flex gap-6 mb-8">
-              <div class="shrink-0 p-4 bg-slate-100 rounded-2xl h-fit"><MapPin /></div>
-              <div>
-                <h4 class="font-bold text-lg">Jebel Ali Warehouse</h4>
-                <p class="text-slate-600">{settings?.address}</p>
+          {
+            contactData?.content && (
+              <div class="bg-white p-10 md:p-14 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate max-w-none">
+                <PortableText value={contactData.content} />
               </div>
+            )
+          }
+
+          <div class="space-y-6">
+            <h2 class="text-2xl font-bold text-slate-900 px-4">Visit our Warehouse</h2>
+            <div class="grid grid-cols-1 gap-6">
+              {
+                contactData?.locations?.map((loc) => (
+                  <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
+                    <div class="shrink-0 p-5 bg-blue-50 text-blue-600 rounded-2xl">
+                      <MapPin size={32} />
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="text-xl font-bold text-slate-900 mb-2">
+                        {loc.title || 'Dubai Location'}
+                      </h4>
+                      <p class="text-slate-600 mb-6 leading-relaxed">{loc.address}</p>
+                      {loc.mapUrl && (
+                        <a
+                          href={loc.mapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all"
+                        >
+                          Open in Google Maps <ChevronRight size={18} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))
+              }
             </div>
           </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-blue-600 p-8 rounded-[2rem] text-white shadow-xl shadow-blue-200">
+            <ShieldCheck size={40} class="mb-6 text-blue-200" />
+            <h3 class="text-2xl font-bold mb-4 leading-tight">
+              Searching for pakistan cargo near me?
+            </h3>
+            <p class="text-blue-100 mb-8 text-sm leading-relaxed">
+              We provide the most reliable door-to-door service across Dubai, Sharjah, and Ajman.
+            </p>
+            <div class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10">
+              <Clock size={18} class="text-blue-200" />
+              <span class="text-sm font-semibold">Open: 10 AM - 6 PM</span>
+            </div>
+          </div>
+
+          {
+            contactData?.faqs && contactData?.faqs.length > 0 && (
+              <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-slate-900 mb-6">Quick Help</h3>
+                <FaqSection faqs={contactData.faqs} />
+              </div>
+            )
+          }
         </div>
       </div>
     </div>

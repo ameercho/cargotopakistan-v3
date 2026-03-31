@@ -1,0 +1,151 @@
+---
+import { sanityClient, urlFor } from '../lib/sanity';
+import Layout from '../layouts/Layout.astro';
+import SEO from '../components/SEO.astro';
+
+// 1. Fetch Rates, Site Settings, and Network Partners
+const data = await sanityClient.fetch(`{
+  "rates": *[_type == "rateCard" && isLive == true] | order(order asc),
+  "settings": *[_id == "siteSettings"][0],
+  "partners": *[_type == "partner"] | order(_createdAt asc)
+}`);
+
+const { rates, settings, partners } = data;
+
+// 2. Specialized SEO for this Landing Page
+const pageTitle = 'Cargo to Pakistan Rates: Dubai to Pakistan Price per KG';
+const pageDescription =
+  'Get the latest 2026 cargo rates from Dubai to Pakistan. Sea cargo starts from low prices per kg. Door-to-door delivery with customs clearance included.';
+---
+
+<Layout>
+  <SEO slot="head" title={pageTitle} description={pageDescription} />
+
+  <main class="bg-slate-50 min-h-screen pb-20">
+    <section class="bg-blue-600 py-16 md:py-24 text-white">
+      <div class="max-w-5xl mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-6xl font-black mb-6 italic tracking-tight">
+          Transparent <span class="text-yellow-400">Cargo Rates</span> to Pakistan
+        </h1>
+        <p class="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
+          Updated for {new Date().toLocaleDateString('en-AE', { month: 'long', year: 'numeric' })}.
+          Door-to-door service from UAE to all cities in Pakistan.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href={`tel:${settings?.phone}`}
+            class="bg-white text-blue-600 px-8 py-3 rounded-full font-black flex items-center gap-2 shadow-lg hover:bg-slate-100 transition-all"
+          >
+            Call Now: {settings?.phone}
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 -mt-10">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {
+            rates.map((rate) => (
+              <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all flex flex-col">
+                <div class="p-8">
+                  {rate.promoBadge && (
+                    <span class="bg-yellow-400 text-blue-900 text-xs font-black px-3 py-1 rounded-full uppercase mb-4 inline-block">
+                      {rate.promoBadge}
+                    </span>
+                  )}
+                  <h3 class="text-2xl font-black text-slate-900 mb-2">{rate.cargoType}</h3>
+                  <div class="flex items-baseline gap-1 mb-6">
+                    <span class="text-4xl font-black text-blue-600">AED {rate.pricePerKg}</span>
+                    <span class="text-slate-500 font-bold">
+                      /{rate.unitType === 'KGM' ? 'kg' : 'unit'}
+                    </span>
+                  </div>
+
+                  <ul class="space-y-3 mb-8">
+                    <li class="flex items-center gap-2 text-slate-600 font-medium">
+                      <span class="text-green-500 font-bold">✓</span> Transit: {rate.transitTime}
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-600 font-medium">
+                      <span class="text-green-500 font-bold">✓</span> {rate.minWeight} Minimum
+                    </li>
+                    {rate.notes && (
+                      <li class="text-sm text-slate-500 italic bg-slate-50 p-3 rounded-xl mt-4">
+                        {rate.notes}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div class="mt-auto p-4 bg-slate-50 border-t border-slate-100 flex flex-col gap-3">
+                  <a
+                    href={`https://wa.me/${settings?.whatsappNumber}?text=I want to inquire about ${rate.cargoType} rates to Pakistan`}
+                    class="block w-full text-center py-4 bg-green-500 text-white font-black rounded-2xl hover:bg-green-600 transition-colors shadow-md"
+                  >
+                    WhatsApp Inquiry
+                  </a>
+                  <a
+                    href={`tel:${settings?.phone}`}
+                    class="block w-full text-center py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-colors shadow-md"
+                  >
+                    Call Now
+                  </a>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    {
+      partners && partners.length > 0 && (
+        <section class="py-16 bg-white border-y border-slate-100">
+          <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-sm font-black uppercase tracking-[0.2em] text-slate-400 mb-10">
+              Our Global Logistics & Delivery Network
+            </h2>
+            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+              {partners.map((partner) => (
+                <div class="flex flex-col items-center gap-2">
+                  {partner.logo && (
+                    <img
+                      src={urlFor(partner.logo).width(200).url()}
+                      alt={partner.logo?.alt || partner.name}
+                      class="h-8 md:h-12 w-auto object-contain"
+                    />
+                  )}
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                    {partner.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="py-16 max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-3xl font-black text-slate-900 mb-8">
+        Official {settings?.businessName || 'Logistics'} Service
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h4 class="font-black text-blue-600 mb-2 font-mono uppercase">Door-to-Door</h4>
+          <p class="text-slate-600 text-sm">
+            Our price includes pickup from your location in UAE and delivery to any doorstep in
+            Pakistan.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h4 class="font-black text-blue-600 mb-2 font-mono uppercase">Customs Cleared</h4>
+          <p class="text-slate-600 text-sm">
+            We handle all documentation and customs duties. The price you see is the price you pay.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

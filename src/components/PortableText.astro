@@ -5,20 +5,38 @@ import { urlFor } from '../lib/sanity';
 const { value } = Astro.props;
 
 // 1. Move styles to a single clean string
-const proseClasses = "prose prose-lg prose-slate max-w-none prose-headings:font-black prose-h2:border-l-8 prose-h2:border-blue-600 prose-h2:pl-6 prose-p:text-slate-600 prose-p:leading-[1.8]";
+const proseClasses =
+  'prose prose-lg prose-slate max-w-none prose-headings:font-black prose-h2:border-l-8 prose-h2:border-blue-600 prose-h2:pl-6 prose-p:text-slate-600 prose-p:leading-[1.8]';
 
 // 2. Safely generate the Image HTML
 const components = {
   type: {
     image: ({ node }: any) => {
-      const imageUrl = urlFor(node).width(1200).auto('format').url();
-      const altText = node.alt || 'Cargo Logistics';
-      
-      return '<figure class="my-10 overflow-hidden rounded-3xl border border-slate-200 shadow-xl">' +
-             '<img src="' + imageUrl + '" alt="' + altText + '" class="w-full h-auto" loading="lazy" />' +
-             '</figure>';
-    }
-  }
+      // SAFETY CHECK: If there is no asset, don't try to build a URL
+      if (!node || !node.asset) {
+        return '';
+      }
+
+      try {
+        const imageUrl = urlFor(node).width(1200).auto('format').url();
+        const altText = node.alt || 'Cargo Logistics to Pakistan';
+
+        return `
+          <figure class="my-10 overflow-hidden rounded-3xl border border-slate-200 shadow-xl">
+            <img 
+              src="${imageUrl}" 
+              alt="${altText}" 
+              class="w-full h-auto object-cover" 
+              loading="lazy" 
+            />
+          </figure>
+        `;
+      } catch (e) {
+        console.error('PortableText Image Error:', e);
+        return '';
+      }
+    },
+  },
 };
 ---
 

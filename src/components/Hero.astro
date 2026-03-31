@@ -5,8 +5,12 @@ import { ShieldCheck, Truck, Clock, Phone, MessageSquare } from 'lucide-react';
 // 1. Accept the dynamic content passed from index.astro
 const { title, subtitle, image } = Astro.props;
 
-// 2. Fetch global settings for WhatsApp/Phone
+// 2. Fetch contact channels (Same logic as FloatingActions)
+const contactData = await sanityClient.fetch(`*[_type == "contactChannel" && isActive == true]`);
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
+
+const whatsapp = contactData.find((c) => c.platform === 'whatsapp')?.value;
+const phone = contactData.find((c) => c.platform === 'phone' || c.platform === 'landline')?.value;
 
 // 3. Fallback content if Sanity fields are empty
 const displayTitle = title || 'Reliable Door-to-Door Cargo from Dubai to Pakistan';
@@ -29,21 +33,29 @@ const displaySubtitle =
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-10">
-          <a
-            href={`https://wa.me/${settings?.whatsappNumber || settings?.ctaValue}`}
-            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-          >
-            <MessageSquare size={22} />
-            WhatsApp Now
-          </a>
+          {
+            whatsapp && (
+              <a
+                href={`https://wa.me/${whatsapp}`}
+                class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <MessageSquare size={22} />
+                WhatsApp Now
+              </a>
+            )
+          }
 
-          <a
-            href={`tel:${settings?.phone}`}
-            class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-          >
-            <Phone size={22} />
-            Call Now
-          </a>
+          {
+            phone && (
+              <a
+                href={`tel:${phone}`}
+                class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <Phone size={22} />
+                Call Now
+              </a>
+            )
+          }
         </div>
       </div>
 

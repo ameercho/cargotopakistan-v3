@@ -19,25 +19,12 @@ interface Props {
 
 const { title, description, ogImage, canonicalUrl, keywords, footerSeoText } = Astro.props;
 
-// 1. Fetching Global Settings
+// 1. Fetching EVERYTHING needed for Header, Footer, and SEO in one go
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
-  title,
-  description,
-  keywords,
-  siteUrl,
-  gtmId,
-  gaId,
-  siteVerificationCode,
-  semrushCode,
-  businessName,
-  legalName,
-  address,
-  geoCoordinates,
-  phone,
-  whatsappNumber,
-  tradeLicense,
-  openingHours,
-  socialLinks
+  ...,
+  headerMenu[],
+  footerMenu[],
+  socialLinks[]
 }`);
 
 const siteBrand = settings?.businessName || 'Cargo to Pakistan';
@@ -120,15 +107,15 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
       )
     }
 
-    <Header />
+    <Header settings={settings} />
 
     <main class="flex-grow">
       <slot />
     </main>
 
-    <Footer seoText={footerSeoText} />
+    <Footer settings={settings} seoText={footerSeoText} />
 
-    <FloatingActions />
+    <FloatingActions settings={settings} />
 
     <SpeedInsights />
   </body>
