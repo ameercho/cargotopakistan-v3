@@ -3,14 +3,22 @@ import { sanityClient } from 'sanity:client';
 import Layout from '../layouts/Layout.astro';
 import PortableText from '../components/PortableText.astro';
 import FaqSection from '../components/FaqSection.astro';
+import CTA from '../components/CTA.astro'; // Import CTA Component
 import { urlFor } from '../lib/sanity';
 import { Truck, Globe2, Award, Users, ShieldCheck } from 'lucide-react';
 
-// Fetch settings and the "About" type company page with FAQs
+// Fetch settings and the "About" type company page with resolved pageCTA
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 const aboutData = await sanityClient.fetch(`
   *[_type == "companyPage" && pageType == "about"][0]{
     ...,
+    pageCTA {
+      ...,
+      links[] {
+        ...,
+        channelRef->{ value, platform }
+      }
+    },
     faqs[] { 
       question, 
       atomicAnswer, 
@@ -148,20 +156,7 @@ const stats = aboutData?.stats || [
       )
     }
 
-    <section class="py-20 px-6 bg-blue-600 text-center rounded-t-[4rem]">
-      <h2 class="text-3xl md:text-5xl font-black text-white mb-8">Ready to move your Cargo?</h2>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a
-          href="/contact"
-          class="bg-white text-blue-600 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition-all shadow-xl"
-          >Visit Our Office</a
-        >
-        <a
-          href={`https://wa.me/${settings?.whatsappNumber}`}
-          class="bg-green-500 text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-green-600 transition-all shadow-xl"
-          >Get Instant Quote</a
-        >
-      </div>
-    </section>
+    {/* Dynamic CTA Section replaces the hardcoded one */}
+    {aboutData?.pageCTA && <CTA {...aboutData.pageCTA} />}
   </main>
 </Layout>

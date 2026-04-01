@@ -6,10 +6,11 @@ import partner from './partner'
 import author from './author'
 import post from './post'
 import faqItem from './objects/faqItem'
+import {cta} from './objects/cta' // New Import
 import homepage from './homepage'
 import contactChannel from './contactChannel'
 import blockContent from './blockContent'
-import location from './location' // Updated from 'page' to 'location'
+import location from './location'
 import route from './route'
 import companyPage from './companyPage'
 
@@ -38,5 +39,6 @@ export const schemaTypes = [
 
   // Reusable Objects
   faqItem,
+  cta, // Registered here
   blockContent,
 ]

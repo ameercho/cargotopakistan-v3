@@ -1,0 +1,121 @@
+---
+import { sanityClient } from 'sanity:client';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  bgColor?: string;
+  links?: Array<{
+    buttonText: string;
+    type: 'whatsapp' | 'phone' | 'link';
+    source: 'reference' | 'manual';
+    channelRef?: { _ref: string };
+    manualValue?: string;
+    isPrimary?: boolean;
+  }>;
+}
+
+const { title, subtitle, bgColor = 'bg-blue-600', links = [] } = Astro.props;
+
+/**
+ * LOGIC:
+ * We need to resolve the actual phone/whatsapp numbers.
+ * If the link uses a 'reference', we fetch the data from the 'contactChannel' document.
+ */
+const resolvedLinks = await Promise.all(
+  links.map(async (item) => {
+    let finalUrl = '';
+
+    if (item.type === 'link') {
+      finalUrl = item.manualValue || '#';
+    } else if (item.source === 'manual') {
+      finalUrl =
+        item.type === 'whatsapp' ? `https://wa.me/${item.manualValue}` : `tel:${item.manualValue}`;
+    } else if (item.source === 'reference' && item.channelRef?._ref) {
+      // Fetch the specific channel value from Sanity
+      const channel = await sanityClient.fetch(`*[_id == $id][0]{value, platform}`, {
+        id: item.channelRef._ref,
+      });
+
+      if (channel?.value) {
+        finalUrl =
+          item.type === 'whatsapp' ? `https://wa.me/${channel.value}` : `tel:${channel.value}`;
+      }
+    }
+
+    return { ...item, finalUrl };
+  })
+);
+---
+
+<section
+  class={`py-20 px-6 ${bgColor} text-center rounded-t-[4rem] shadow-inner relative overflow-hidden`}
+>
+  <div class="max-w-4xl mx-auto relative z-10">
+    <h2 class="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
+      {title || 'Ready to move your Cargo?'}
+    </h2>
+
+    {subtitle && <p class="text-white/80 text-lg mb-8 max-w-2xl mx-auto">{subtitle}</p>}
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+      {
+        resolvedLinks.map((link) => (
+          <a
+            href={link.finalUrl}
+            target={link.type === 'whatsapp' ? '_blank' : '_self'}
+            rel={link.type === 'whatsapp' ? 'noopener noreferrer' : ''}
+            class:list={[
+              'w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-lg transition-all shadow-xl hover:scale-105 flex items-center justify-center gap-2',
+              { 'bg-white text-slate-900 hover:bg-slate-100': link.isPrimary },
+              {
+                'bg-green-500 text-white hover:bg-green-600':
+                  !link.isPrimary && link.type === 'whatsapp',
+              },
+              {
+                'bg-blue-500 text-white hover:bg-blue-600':
+                  !link.isPrimary && link.type === 'phone',
+              },
+              {
+                'bg-slate-800 text-white hover:bg-slate-700':
+                  !link.isPrimary && link.type === 'link',
+              },
+            ]}
+          >
+            {link.type === 'whatsapp' && (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+              </svg>
+            )}
+            {link.type === 'phone' && (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l2.27-2.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+            )}
+            {link.buttonText}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>

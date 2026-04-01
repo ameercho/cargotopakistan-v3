@@ -4,18 +4,26 @@ import Layout from '../layouts/Layout.astro';
 import { Mail, Phone, MapPin, Clock, MessageSquare, ShieldCheck, ChevronRight } from 'lucide-react';
 import PortableText from '../components/PortableText.astro';
 import FaqSection from '../components/FaqSection.astro';
+import CTA from '../components/CTA.astro'; // Import CTA Component
 
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 const contactChannels = await sanityClient.fetch(
   `*[_type == "contactChannel" && isActive == true]`
 );
 
-// Updated GROQ to match new schema field names
+// Updated GROQ to fetch pageCTA and resolve link references
 const contactData = await sanityClient.fetch(
   `*[_type == "companyPage" && pageType == "contact"][0]{
     ...,
     heroTitle,
     heroSubtitle,
+    pageCTA {
+      ...,
+      links[] {
+        ...,
+        channelRef->{ value, platform }
+      }
+    },
     additionalContacts[] { label, number },
     locations[] { title, address, mapUrl },
     faqs[] { 
@@ -195,5 +203,8 @@ const contactSchema = {
         </div>
       </div>
     </div>
+
+    {/* Dynamic CTA Section */}
+    {contactData?.pageCTA && <CTA {...contactData.pageCTA} />}
   </main>
 </Layout>

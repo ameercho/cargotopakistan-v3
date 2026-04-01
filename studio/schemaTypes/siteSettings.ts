@@ -175,17 +175,71 @@ export default defineType({
     // --- GLOBAL CONTACT & CTA ---
     defineField({
       name: 'phone',
-      title: 'Primary Phone',
+      title: 'Primary Phone (Site-wide)',
       type: 'string',
       group: 'contact',
     }),
     defineField({
       name: 'whatsappNumber',
-      title: 'WhatsApp Number',
+      title: 'WhatsApp Number (Site-wide)',
       type: 'string',
       group: 'contact',
       description: 'Example: 971501234567 (No plus sign).',
     }),
+
+    // NEW CTA CUSTOMIZATION FIELDS
+    defineField({
+      name: 'ctaTitle',
+      title: 'Default CTA Heading',
+      type: 'string',
+      group: 'contact',
+      initialValue: 'Ready to move your Cargo?',
+    }),
+    defineField({
+      name: 'ctaBgColor',
+      title: 'CTA Background Color',
+      type: 'string',
+      group: 'contact',
+      options: {
+        list: [
+          {title: 'Blue (Primary)', value: 'bg-blue-600'},
+          {title: 'Green (WhatsApp)', value: 'bg-green-600'},
+          {title: 'Dark Slate', value: 'bg-slate-900'},
+          {title: 'Red (Urgent)', value: 'bg-red-600'},
+        ],
+      },
+      initialValue: 'bg-blue-600',
+    }),
+    defineField({
+      name: 'ctaSource',
+      title: 'CTA Number Source',
+      type: 'string',
+      group: 'contact',
+      options: {
+        list: [
+          {title: 'Use Site-wide WhatsApp Above', value: 'sitewide'},
+          {title: 'Use a Specific Contact Channel', value: 'channel'},
+          {title: 'Manual Entry', value: 'manual'},
+        ],
+      },
+      initialValue: 'sitewide',
+    }),
+    defineField({
+      name: 'ctaChannelRef',
+      title: 'Select Contact Channel',
+      type: 'reference',
+      to: [{type: 'contactChannel'}],
+      group: 'contact',
+      hidden: ({parent}) => parent?.ctaSource !== 'channel',
+    }),
+    defineField({
+      name: 'ctaManualNumber',
+      title: 'Manual WhatsApp Number',
+      type: 'string',
+      group: 'contact',
+      hidden: ({parent}) => parent?.ctaSource !== 'manual',
+    }),
+
     defineField({
       name: 'socialLinks',
       title: 'Social Media Links',

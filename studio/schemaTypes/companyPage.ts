@@ -128,6 +128,15 @@ export default defineType({
       group: 'content',
     }),
 
+    // --- NEW CTA SECTION ---
+    defineField({
+      name: 'pageCTA',
+      title: 'Page Call to Action',
+      type: 'cta', // Using the object we created
+      group: 'content',
+      description: 'Customize the CTA banner for this specific page.',
+    }),
+
     // --- Contact Specific Details ---
     defineField({
       name: 'additionalContacts',
