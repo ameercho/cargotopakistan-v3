@@ -19,17 +19,22 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
   <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
     <div class="space-y-6">
       <div class="brightness-0 invert opacity-90 w-40"><Logo /></div>
-      <p class="text-sm">{settings?.description}</p>
+      <p class="text-sm leading-relaxed">{settings?.description}</p>
+      <div
+        class="flex items-center gap-2 text-blue-500 font-bold text-xs uppercase tracking-widest"
+      >
+        <ShieldCheck size={16} />
+        <span>Secure Logistics</span>
+      </div>
     </div>
 
     <div>
-      <h4 class="text-white font-bold mb-6 uppercase">Our Services</h4>
+      <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Our Services</h4>
       <ul class="space-y-4 text-sm">
         {
           services.map((s) => (
             <li>
               <a href={`/services/${s.slug.current}`} class="hover:text-blue-400 transition-colors">
-                {' '}
                 {s.title}
               </a>
             </li>
@@ -39,15 +44,13 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
     </div>
 
     <div>
-      <h4 class="text-white font-bold mb-6 uppercase">Service Areas</h4>
+      <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Service Areas</h4>
       <div class="grid grid-cols-2 gap-4 text-xs">
         {
           settings?.mainServiceAreas?.map((area) => (
-            <div class="flex items-center gap-2">
-              <>
-                <MapPin size={12} />
-                <span>{area}</span>
-              </>
+            <div class="flex items-center gap-2 hover:text-white transition-colors cursor-default">
+              <MapPin size={12} class="text-blue-500" />
+              <span>{area}</span>
             </div>
           ))
         }
@@ -55,41 +58,80 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
     </div>
 
     <div>
-      <h4 class="text-white font-bold mb-6 uppercase">Contact</h4>
+      <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Contact Details</h4>
       <ul class="space-y-4 text-sm">
         {
           phone && (
             <li class="flex items-start gap-3">
-              <>
-                <Phone size={18} class="text-blue-500" />
-                <p class="text-white font-bold">{phone}</p>
-              </>
+              <Phone size={18} class="text-blue-500 shrink-0" />
+              <div>
+                <p class="text-xs uppercase text-slate-500 font-bold mb-1">Helpline</p>
+                <a
+                  href={`tel:${phone}`}
+                  class="text-white font-bold hover:text-blue-400 transition-colors"
+                >
+                  {phone}
+                </a>
+              </div>
             </li>
           )
         }
         {
           whatsapp && (
             <li class="flex items-start gap-3">
-              <MessageSquare size={18} class="text-green-500" />
-              <a href={`https://wa.me/${whatsapp}`} class="hover:text-white font-bold text-white">
-                WhatsApp Support
-              </a>
+              <MessageSquare size={18} class="text-green-500 shrink-0" />
+              <div>
+                <p class="text-xs uppercase text-slate-500 font-bold mb-1">WhatsApp</p>
+                <a
+                  href={`https://wa.me/${whatsapp}`}
+                  class="text-white font-bold hover:text-green-400 transition-colors"
+                >
+                  Instant Support
+                </a>
+              </div>
             </li>
           )
         }
       </ul>
+
       <div class="pt-6 mt-6 border-t border-slate-800">
-        <p class="text-xs font-bold text-white mb-4 uppercase">Quick Links</p>
-        <div class="flex flex-wrap gap-4 text-xs">
+        <p class="text-[10px] font-bold text-slate-500 mb-4 uppercase tracking-widest">
+          Legal & Quick Links
+        </p>
+        <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs">
           {
             settings?.footerMenu?.map((link) => (
-              <a href={link.link} class="hover:text-blue-400">
+              <a href={link.link} class="hover:text-white transition-colors">
                 {link.label}
               </a>
             ))
           }
         </div>
       </div>
+    </div>
+  </div>
+
+  {/* SEO TEXT BLOCK - ONLY SHOWS IF seoText IS PROVIDED */}
+  {
+    seoText && (
+      <div class="max-w-7xl mx-auto px-6 mt-20 pt-10 border-t border-slate-800/50">
+        <div class="bg-slate-800/30 rounded-3xl p-8 md:p-12 border border-slate-800">
+          <div class="prose prose-invert prose-sm max-w-none text-slate-400 leading-loose">
+            <p class="whitespace-pre-line">{seoText}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  <div
+    class="max-w-7xl mx-auto px-6 mt-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold"
+  >
+    <p>© 2026 {settings?.businessName || 'Logistics'}. All Rights Reserved.</p>
+    <div class="flex gap-8">
+      <a href="/privacy-policy" class="hover:text-white">Privacy</a>
+      <a href="/terms-and-conditions" class="hover:text-white">Terms</a>
+      <a href="/sitemap.xml" class="hover:text-white">Sitemap</a>
     </div>
   </div>
 </footer>

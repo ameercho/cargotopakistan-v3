@@ -96,25 +96,57 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
     id="mobile-menu"
     class="fixed inset-0 bg-white z-[105] translate-x-full transition-transform duration-300 md:hidden pt-24 px-6 overflow-y-auto"
   >
-    <nav class="flex flex-col gap-4">
+    <nav class="flex flex-col gap-2">
       {
         navLinks.map((item) => (
           <a
             href={item.link}
-            class="text-2xl font-bold text-slate-900 border-b border-slate-50 pb-4"
+            class="text-2xl font-bold text-slate-900 py-4 border-b border-slate-50"
           >
             {item.label}
           </a>
         ))
       }
-      <div class="mt-4 flex flex-col gap-6">
+
+      <div class="border-b border-slate-50">
+        <button
+          id="mobile-services-toggle"
+          class="flex items-center justify-between w-full text-2xl font-bold text-slate-900 py-4"
+        >
+          Services <ChevronDown
+            id="services-chevron"
+            size={24}
+            class="transition-transform duration-200"
+          />
+        </button>
+        <div
+          id="mobile-services-list"
+          class="hidden flex-col gap-2 pb-4 pl-4 bg-slate-50 rounded-2xl mb-4"
+        >
+          {
+            services.map((s) => (
+              <a
+                href={`/services/${s.slug.current}`}
+                class="block py-3 text-lg font-semibold text-slate-600 active:text-blue-600"
+              >
+                {s.title}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="mt-8 flex flex-col gap-6">
         {
           phone && (
             <a
               href={`tel:${phone}`}
-              class="flex items-center gap-3 text-lg font-bold text-slate-900"
+              class="flex items-center gap-3 text-xl font-bold text-slate-900"
             >
-              <Phone class="text-blue-600" /> {phone}
+              <div class="p-3 bg-blue-50 rounded-xl text-blue-600">
+                <Phone />
+              </div>{' '}
+              {phone}
             </a>
           )
         }
@@ -122,9 +154,12 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
           whatsapp && (
             <a
               href={`https://wa.me/${whatsapp}`}
-              class="flex items-center gap-3 text-lg font-bold text-green-600"
+              class="flex items-center gap-3 text-xl font-bold text-green-600"
             >
-              <MessageSquare /> WhatsApp
+              <div class="p-3 bg-green-50 rounded-xl text-green-600">
+                <MessageSquare />
+              </div>{' '}
+              WhatsApp
             </a>
           )
         }
@@ -137,14 +172,38 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
   function initMenu() {
     const menuBtn = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
-    if (!menuBtn || !mobileMenu) return;
-    menuBtn.onclick = () => {
-      const isClosed = menuBtn.getAttribute('data-state') === 'closed';
-      menuBtn.setAttribute('data-state', isClosed ? 'open' : 'closed');
-      mobileMenu.classList.toggle('translate-x-full');
-      document.body.style.overflow = isClosed ? 'hidden' : '';
-    };
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    // Services toggle logic
+    const servicesToggle = document.getElementById('mobile-services-toggle');
+    const servicesList = document.getElementById('mobile-services-list');
+    const servicesChevron = document.getElementById('services-chevron');
+
+    if (menuBtn && mobileMenu) {
+      menuBtn.onclick = () => {
+        const isClosed = menuBtn.getAttribute('data-state') === 'closed';
+        menuBtn.setAttribute('data-state', isClosed ? 'open' : 'closed');
+        mobileMenu.classList.toggle('translate-x-full');
+
+        // Toggle icons
+        hamburgerIcon?.classList.toggle('hidden');
+        closeIcon?.classList.toggle('hidden');
+
+        document.body.style.overflow = isClosed ? 'hidden' : '';
+      };
+    }
+
+    if (servicesToggle && servicesList && servicesChevron) {
+      servicesToggle.onclick = () => {
+        const isHidden = servicesList.classList.contains('hidden');
+        servicesList.classList.toggle('hidden');
+        servicesList.classList.toggle('flex');
+        servicesChevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      };
+    }
   }
+
   initMenu();
   document.addEventListener('astro:after-swap', initMenu);
 </script>
