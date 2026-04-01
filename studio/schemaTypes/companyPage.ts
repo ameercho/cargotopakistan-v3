@@ -6,6 +6,11 @@ export default defineType({
   title: 'Company Pages',
   type: 'document',
   icon: FileText,
+  groups: [
+    {name: 'content', title: 'Content'},
+    {name: 'seo', title: 'SEO'},
+    {name: 'contactInfo', title: 'Contact Details'},
+  ],
   fields: [
     defineField({
       name: 'title',
@@ -28,8 +33,6 @@ export default defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
-
-    // --- SLUG FIELD ADDED HERE ---
     defineField({
       name: 'slug',
       title: 'URL Slug',
@@ -40,34 +43,35 @@ export default defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
-    // ----------------------------
 
-    // SEO Group
+    // --- SEO Group ---
     defineField({name: 'seoTitle', type: 'string', title: 'SEO Browser Title', group: 'seo'}),
     defineField({name: 'metaDescription', type: 'text', title: 'Meta Description', group: 'seo'}),
 
-    // Hero Section
+    // --- Hero Section (Simplified for Astro Mapping) ---
     defineField({
-      name: 'heroTitlePart1',
+      name: 'heroTitle',
       type: 'string',
-      title: 'Hero Title (Main)',
-      group: 'content',
-    }),
-    defineField({
-      name: 'heroTitlePart2',
-      type: 'string',
-      title: 'Hero Title (Accent/Blue)',
+      title: 'Hero Main Heading',
       group: 'content',
     }),
     defineField({
       name: 'heroSubtitle',
-      type: 'string',
-      title: 'Small Label Above Title',
+      type: 'text',
+      rows: 2,
+      title: 'Hero Subtext/Description',
       group: 'content',
     }),
-    defineField({name: 'heroDescription', type: 'text', title: 'Hero Paragraph', group: 'content'}),
 
-    // Stats Section (Visible only for About page)
+    // --- Main Body Content ---
+    defineField({
+      name: 'content',
+      type: 'blockContent',
+      title: 'Main Page Text/Body',
+      group: 'content',
+    }),
+
+    // --- Stats Section (About Page Only) ---
     defineField({
       name: 'stats',
       title: 'Company Statistics',
@@ -85,47 +89,51 @@ export default defineType({
       ],
     }),
 
-    // Content Section
-    defineField({name: 'bodyTitle', type: 'string', title: 'Body Section Title', group: 'content'}),
-    defineField({
-      name: 'bodyTitleAccent',
-      type: 'string',
-      title: 'Body Section Title (Accent)',
-      group: 'content',
-    }),
-    defineField({
-      name: 'content',
-      type: 'blockContent',
-      title: 'Main Page Text/Body',
-      group: 'content',
-    }),
-    defineField({name: 'mainImage', type: 'image', options: {hotspot: true}, group: 'content'}),
-
-    // Contact Specific Section (Visible only for Contact page)
+    // --- Contact Specific: Additional Phones ---
     defineField({
       name: 'additionalContacts',
       title: 'Additional Phone Numbers',
       type: 'array',
-      group: 'content',
+      group: 'contactInfo',
       hidden: ({document}) => document?.pageType !== 'contact',
       of: [
         {
           type: 'object',
           fields: [
-            {name: 'label', type: 'string', title: 'Location/Dept (e.g. Abu Dhabi)'},
+            {name: 'label', type: 'string', title: 'Location/Dept'},
             {name: 'number', type: 'string', title: 'Phone Number'},
           ],
         },
       ],
     }),
 
-    // Quote Section
-    defineField({name: 'quoteText', type: 'text', title: 'Leadership Quote', group: 'content'}),
-    defineField({name: 'quoteAuthor', type: 'string', title: 'Quote Author', group: 'content'}),
-  ],
-  groups: [
-    {name: 'content', title: 'Content'},
-    {name: 'seo', title: 'SEO'},
+    // --- Contact Specific: Locations/Offices ---
+    defineField({
+      name: 'locations',
+      title: 'Office/Warehouse Locations',
+      type: 'array',
+      group: 'contactInfo',
+      hidden: ({document}) => document?.pageType !== 'contact',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {name: 'title', type: 'string', title: 'Location Title (e.g. Jebel Ali Hub)'},
+            {name: 'address', type: 'text', rows: 3, title: 'Full Address'},
+            {name: 'mapUrl', type: 'url', title: 'Google Maps Link'},
+          ],
+        },
+      ],
+    }),
+
+    // --- FAQs (Now available for ALL pages) ---
+    defineField({
+      name: 'faqs',
+      title: 'Page Specific FAQs',
+      type: 'array',
+      group: 'content',
+      of: [{type: 'faqItem'}],
+    }),
   ],
   preview: {
     select: {

@@ -9,12 +9,20 @@ const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 const contactChannels = await sanityClient.fetch(
   `*[_type == "contactChannel" && isActive == true]`
 );
+
+// Updated GROQ to match new schema field names
 const contactData = await sanityClient.fetch(
   `*[_type == "companyPage" && pageType == "contact"][0]{
     ...,
+    heroTitle,
+    heroSubtitle,
     additionalContacts[] { label, number },
     locations[] { title, address, mapUrl },
-    faqs[] { question, answer }
+    faqs[] { 
+      question, 
+      atomicAnswer, 
+      detailedAnswer 
+    }
   }`
 );
 
@@ -131,7 +139,7 @@ const contactSchema = {
           }
 
           <div class="space-y-6">
-            <h2 class="text-2xl font-bold text-slate-900 px-4">Visit our Warehouse</h2>
+            <h2 class="text-2xl font-bold text-slate-900 px-4">Our Locations</h2>
             <div class="grid grid-cols-1 gap-6">
               {
                 contactData?.locations?.map((loc) => (
@@ -140,10 +148,10 @@ const contactSchema = {
                       <MapPin size={32} />
                     </div>
                     <div class="flex-1">
-                      <h4 class="text-xl font-bold text-slate-900 mb-2">
-                        {loc.title || 'Dubai Location'}
-                      </h4>
-                      <p class="text-slate-600 mb-6 leading-relaxed">{loc.address}</p>
+                      <h4 class="text-xl font-bold text-slate-900 mb-2">{loc.title}</h4>
+                      <p class="text-slate-600 mb-6 leading-relaxed whitespace-pre-line">
+                        {loc.address}
+                      </p>
                       {loc.mapUrl && (
                         <a
                           href={loc.mapUrl}
@@ -165,22 +173,21 @@ const contactSchema = {
         <div class="space-y-6">
           <div class="bg-blue-600 p-8 rounded-[2rem] text-white shadow-xl shadow-blue-200">
             <ShieldCheck size={40} class="mb-6 text-blue-200" />
-            <h3 class="text-2xl font-bold mb-4 leading-tight">
-              Searching for pakistan cargo near me?
-            </h3>
+            <h3 class="text-2xl font-bold mb-4 leading-tight">Looking for cargo to Pakistan?</h3>
             <p class="text-blue-100 mb-8 text-sm leading-relaxed">
-              We provide the most reliable door-to-door service across Dubai, Sharjah, and Ajman.
+              Our experts are ready to help you with documentation and secure packaging at our Jebel
+              Ali warehouse.
             </p>
             <div class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10">
               <Clock size={18} class="text-blue-200" />
-              <span class="text-sm font-semibold">Open: 10 AM - 6 PM</span>
+              <span class="text-sm font-semibold">Support: 24/7 Available</span>
             </div>
           </div>
 
           {
             contactData?.faqs && contactData?.faqs.length > 0 && (
               <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                <h3 class="text-xl font-bold text-slate-900 mb-6">Quick Help</h3>
+                <h3 class="text-xl font-bold text-slate-900 mb-6 px-2">Common Questions</h3>
                 <FaqSection faqs={contactData.faqs} />
               </div>
             )
