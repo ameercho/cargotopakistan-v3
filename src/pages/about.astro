@@ -2,14 +2,23 @@
 import { sanityClient } from 'sanity:client';
 import Layout from '../layouts/Layout.astro';
 import PortableText from '../components/PortableText.astro';
-import { urlFor } from '../lib/sanity'; // Ensure you have this helper
-import { Truck, Globe2, Award, Users, Anchor, ShieldCheck } from 'lucide-react';
+import FaqSection from '../components/FaqSection.astro';
+import { urlFor } from '../lib/sanity';
+import { Truck, Globe2, Award, Users, ShieldCheck } from 'lucide-react';
 
-// Fetch settings and specifically the "About" type company page
+// Fetch settings and the "About" type company page with FAQs
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
-const aboutData = await sanityClient.fetch(`*[_type == "companyPage" && pageType == "about"][0]`);
+const aboutData = await sanityClient.fetch(`
+  *[_type == "companyPage" && pageType == "about"][0]{
+    ...,
+    faqs[] { 
+      question, 
+      atomicAnswer, 
+      detailedAnswer 
+    }
+  }
+`);
 
-// Map icons to labels (or fallback to defaults)
 const iconMap = {
   'Years Experience': Award,
   'Cargo Moved': Truck,
@@ -40,9 +49,7 @@ const stats = aboutData?.stats || [
           {aboutData?.heroSubtitle || 'Our Legacy'}
         </span>
         <h1 class="text-4xl md:text-7xl font-black text-white mb-6 leading-tight">
-          {aboutData?.heroTitlePart1 || 'Connecting the UAE'}
-          <br />
-          <span class="text-blue-500">{aboutData?.heroTitlePart2 || 'to Pakistan'}</span>
+          {aboutData?.heroTitle || 'Connecting the UAE to Pakistan'}
         </h1>
         <p class="text-slate-300 text-lg max-w-3xl mx-auto leading-relaxed">
           {
@@ -79,18 +86,17 @@ const stats = aboutData?.stats || [
         <div>
           <h2 class="text-3xl md:text-5xl font-black text-slate-900 mb-8 italic leading-tight">
             {aboutData?.bodyTitle || 'Managing the Flow of'}
-            <span class="text-blue-600 underline ml-2"
-              >{aboutData?.bodyTitleAccent || 'Pakistan Trade'}</span
-            >
+            <span class="text-blue-600 underline ml-2">
+              {aboutData?.bodyTitleAccent || 'Pakistan Trade'}
+            </span>
           </h2>
-          <div class="space-y-6 text-slate-600 text-lg leading-relaxed">
+          <div class="space-y-6 text-slate-600 text-lg leading-relaxed prose prose-slate">
             {
               aboutData?.content ? (
                 <PortableText value={aboutData.content} />
               ) : (
                 <p>
-                  Operating primarily from <strong>Jebel Ali</strong>, we specialize in secure sea
-                  and air freight.
+                  Operating primarily from Jebel Ali, we specialize in secure sea and air freight.
                 </p>
               )
             }
@@ -103,15 +109,13 @@ const stats = aboutData?.stats || [
               aboutData?.mainImage ? (
                 <img
                   src={urlFor(aboutData.mainImage).width(800).url()}
-                  alt={
-                    aboutData.mainImage?.alt ||
-                    `${settings?.businessName || 'Cargo To Pakistan'} warehouse operations image`
-                  }
+                  alt={aboutData.mainImage?.alt || 'Cargo Operations'}
                   class="w-full h-full object-cover"
                 />
               ) : (
                 <img
                   src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800"
+                  alt="Warehouse operations"
                   class="w-full h-full object-cover"
                 />
               )
@@ -130,6 +134,19 @@ const stats = aboutData?.stats || [
         </div>
       </div>
     </section>
+
+    {
+      aboutData?.faqs && aboutData.faqs.length > 0 && (
+        <section class="py-24 bg-slate-50">
+          <div class="max-w-4xl mx-auto px-6">
+            <h2 class="text-3xl md:text-5xl font-black text-slate-900 mb-12 text-center">
+              Common Questions
+            </h2>
+            <FaqSection faqs={aboutData.faqs} />
+          </div>
+        </section>
+      )
+    }
 
     <section class="py-20 px-6 bg-blue-600 text-center rounded-t-[4rem]">
       <h2 class="text-3xl md:text-5xl font-black text-white mb-8">Ready to move your Cargo?</h2>

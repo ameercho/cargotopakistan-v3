@@ -48,26 +48,25 @@ export default defineType({
     defineField({name: 'seoTitle', type: 'string', title: 'SEO Browser Title', group: 'seo'}),
     defineField({name: 'metaDescription', type: 'text', title: 'Meta Description', group: 'seo'}),
 
-    // --- Hero Section (Simplified for Astro Mapping) ---
+    // --- Hero Section ---
+    defineField({
+      name: 'heroSubtitle',
+      type: 'string',
+      title: 'Small Label Above Title (e.g. "Our Legacy")',
+      group: 'content',
+    }),
     defineField({
       name: 'heroTitle',
       type: 'string',
       title: 'Hero Main Heading',
+      description: 'Main heading for the page',
       group: 'content',
     }),
     defineField({
-      name: 'heroSubtitle',
+      name: 'heroDescription',
       type: 'text',
-      rows: 2,
-      title: 'Hero Subtext/Description',
-      group: 'content',
-    }),
-
-    // --- Main Body Content ---
-    defineField({
-      name: 'content',
-      type: 'blockContent',
-      title: 'Main Page Text/Body',
+      rows: 3,
+      title: 'Hero Paragraph/Description',
       group: 'content',
     }),
 
@@ -89,7 +88,47 @@ export default defineType({
       ],
     }),
 
-    // --- Contact Specific: Additional Phones ---
+    // --- Body Content Section ---
+    defineField({
+      name: 'bodyTitle',
+      type: 'string',
+      title: 'Body Section Title',
+      group: 'content',
+    }),
+    defineField({
+      name: 'bodyTitleAccent',
+      type: 'string',
+      title: 'Body Section Title (Accent/Blue)',
+      group: 'content',
+    }),
+    defineField({
+      name: 'content',
+      type: 'blockContent',
+      title: 'Main Page Text/Body',
+      group: 'content',
+    }),
+    defineField({
+      name: 'mainImage',
+      type: 'image',
+      options: {hotspot: true},
+      group: 'content',
+    }),
+
+    // --- Leadership / Quote Section ---
+    defineField({
+      name: 'quoteText',
+      type: 'text',
+      title: 'Leadership Quote',
+      group: 'content',
+    }),
+    defineField({
+      name: 'quoteAuthor',
+      type: 'string',
+      title: 'Quote Author',
+      group: 'content',
+    }),
+
+    // --- Contact Specific Details ---
     defineField({
       name: 'additionalContacts',
       title: 'Additional Phone Numbers',
@@ -106,8 +145,6 @@ export default defineType({
         },
       ],
     }),
-
-    // --- Contact Specific: Locations/Offices ---
     defineField({
       name: 'locations',
       title: 'Office/Warehouse Locations',
@@ -118,7 +155,7 @@ export default defineType({
         {
           type: 'object',
           fields: [
-            {name: 'title', type: 'string', title: 'Location Title (e.g. Jebel Ali Hub)'},
+            {name: 'title', type: 'string', title: 'Location Title'},
             {name: 'address', type: 'text', rows: 3, title: 'Full Address'},
             {name: 'mapUrl', type: 'url', title: 'Google Maps Link'},
           ],
@@ -126,7 +163,7 @@ export default defineType({
       ],
     }),
 
-    // --- FAQs (Now available for ALL pages) ---
+    // --- Global Page FAQs ---
     defineField({
       name: 'faqs',
       title: 'Page Specific FAQs',
