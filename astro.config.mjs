@@ -13,7 +13,7 @@ export default defineConfig({
     sanity({
       projectId: 'vx91r8qj',
       dataset: 'production',
-      useCdn: true, // Optimized for faster performance in the UAE
+      useCdn: false, // Optimized for faster performance in the UAE
     }),
 
     react(),

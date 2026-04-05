@@ -19,10 +19,14 @@ interface Props {
 
 const { title, description, ogImage, canonicalUrl, keywords, footerSeoText } = Astro.props;
 
-// 1. Fetching EVERYTHING needed for Header, Footer, and SEO in one go
+// 1. Fetching EVERYTHING including the full headerMenu object
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
   ...,
-  headerMenu[],
+  headerMenu[] {
+    label,
+    link,
+    isButton
+  },
   footerMenu[],
   socialLinks[]
 }`);
@@ -107,6 +111,7 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
       )
     }
 
+    <!-- Pass the settings (which contains our menu) to the Header -->
     <Header settings={settings} />
 
     <main class="flex-grow">
@@ -114,9 +119,7 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
     </main>
 
     <Footer settings={settings} seoText={footerSeoText} />
-
     <FloatingActions settings={settings} />
-
     <SpeedInsights />
   </body>
 </html>

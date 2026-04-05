@@ -3,16 +3,40 @@ import { sanityClient } from 'sanity:client';
 import { Phone, MessageSquare, ChevronDown, Menu, X } from 'lucide-react';
 import Logo from './Logo.astro';
 
-// Fetch Menu from settings, but Contact from contactChannel (matches FloatingActions)
-const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{ headerMenu[] }`);
-const contactData = await sanityClient.fetch(`*[_type == "contactChannel" && isActive == true]`);
-const services = (await sanityClient.fetch(`*[_type == "service"] | order(order asc)`)) || [];
+// 1. DIRECT FETCH (Bypasses CDN to ensure fresh URLs and contact data)
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`, {}, { useCdn: false });
 
-const navLinks = settings?.headerMenu || [];
+const contactData = await sanityClient.fetch(
+  `*[_type == "contactChannel" && isActive == true]`,
+  {},
+  { useCdn: false }
+);
 
-// Find the specific channels from the contactData array
-const whatsapp = contactData.find((c) => c.platform === 'whatsapp')?.value;
-const phone = contactData.find((c) => c.platform === 'phone' || c.platform === 'landline')?.value;
+const services = await sanityClient.fetch(
+  `*[_type == "service"] | order(order asc)`,
+  {},
+  { useCdn: false }
+);
+
+// 2. Navigation Logic
+const navLinks =
+  settings?.headerMenu?.length > 0
+    ? settings.headerMenu
+    : [
+        { label: 'Home', link: '/' },
+        { label: 'About', link: '/about' },
+        { label: 'Contact', link: '/contact' },
+      ];
+
+// 3. Contact Logic (Priority to contactChannel, Fallback to siteSettings)
+const whatsappRaw =
+  contactData.find((c) => c.platform === 'whatsapp')?.value || settings?.whatsappNumber;
+const phone =
+  contactData.find((c) => c.platform === 'phone' || c.platform === 'landline')?.value ||
+  settings?.phone;
+
+// Clean WhatsApp for the URL (removes spaces/dashes)
+const whatsappLink = whatsappRaw ? whatsappRaw.replace(/\s+/g, '') : '';
 ---
 
 <header class="sticky top-0 z-[100] bg-white border-b border-slate-100 shadow-sm">
@@ -21,18 +45,20 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
       <Logo />
     </a>
 
+    <!-- Desktop Navigation -->
     <nav class="hidden md:flex items-center gap-8">
       {
         navLinks.map((item) => (
           <a
             href={item.link}
-            class="font-semibold text-slate-600 hover:text-blue-600 transition-colors"
+            class={`font-semibold transition-colors ${item.isButton ? 'px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700' : 'text-slate-600 hover:text-blue-600'}`}
           >
             {item.label}
           </a>
         ))
       }
 
+      <!-- Services Dropdown -->
       <div class="relative group py-4">
         <button
           class="font-semibold text-slate-600 group-hover:text-blue-600 flex items-center gap-1"
@@ -40,12 +66,12 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
           Services <ChevronDown size={14} />
         </button>
         <div
-          class="absolute top-full -left-4 w-60 bg-white border border-slate-100 shadow-xl rounded-xl p-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all"
+          class="absolute top-full -left-4 w-64 bg-white border border-slate-100 shadow-xl rounded-xl p-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all"
         >
           {
             services.map((s) => (
               <a
-                href={`/services/${s.slug.current}`}
+                href={`/${s.slug.current}`}
                 class="block px-4 py-2 hover:bg-blue-50 rounded-lg font-medium text-slate-700 transition-colors"
               >
                 {s.title}
@@ -56,12 +82,13 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
       </div>
     </nav>
 
+    <!-- Right Side Actions -->
     <div class="flex items-center gap-2 md:gap-4">
       {
         phone && (
           <a
             href={`tel:${phone}`}
-            class="hidden md:flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+            class="hidden lg:flex items-center text-blue-600 hover:text-blue-700 transition-colors"
           >
             <Phone size={20} />
             <span class="ml-2 font-bold text-slate-900">{phone}</span>
@@ -70,10 +97,10 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
       }
 
       {
-        whatsapp && (
+        whatsappLink && (
           <a
-            href={`https://wa.me/${whatsapp}`}
-            class="hidden md:flex items-center px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-lg shadow-green-100"
+            href={`https://wa.me/${whatsappLink}`}
+            class="hidden md:flex items-center px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-lg"
           >
             <MessageSquare size={20} />
             <span class="ml-2 font-bold">WhatsApp</span>
@@ -81,6 +108,7 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
         )
       }
 
+      <!-- Mobile Toggle -->
       <button
         class="md:hidden p-2 text-slate-600 relative z-[110]"
         id="mobile-menu-button"
@@ -92,6 +120,7 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
     </div>
   </div>
 
+  <!-- Mobile Menu Overlay -->
   <div
     id="mobile-menu"
     class="fixed inset-0 bg-white z-[105] translate-x-full transition-transform duration-300 md:hidden pt-24 px-6 overflow-y-auto"
@@ -126,8 +155,8 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
           {
             services.map((s) => (
               <a
-                href={`/services/${s.slug.current}`}
-                class="block py-3 text-lg font-semibold text-slate-600 active:text-blue-600"
+                href={`/${s.slug.current}`}
+                class="block py-3 text-lg font-semibold text-slate-600"
               >
                 {s.title}
               </a>
@@ -136,30 +165,25 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
         </div>
       </div>
 
-      <div class="mt-8 flex flex-col gap-6">
+      <!-- Mobile Contact Actions -->
+      <div class="mt-8 flex flex-col gap-4">
         {
           phone && (
             <a
               href={`tel:${phone}`}
-              class="flex items-center gap-3 text-xl font-bold text-slate-900"
+              class="flex items-center justify-center gap-3 p-4 bg-slate-100 rounded-xl font-bold text-slate-900"
             >
-              <div class="p-3 bg-blue-50 rounded-xl text-blue-600">
-                <Phone />
-              </div>{' '}
-              {phone}
+              <Phone size={20} /> Call Now
             </a>
           )
         }
         {
-          whatsapp && (
+          whatsappLink && (
             <a
-              href={`https://wa.me/${whatsapp}`}
-              class="flex items-center gap-3 text-xl font-bold text-green-600"
+              href={`https://wa.me/${whatsappLink}`}
+              class="flex items-center justify-center gap-3 p-4 bg-green-600 text-white rounded-xl font-bold"
             >
-              <div class="p-3 bg-green-50 rounded-xl text-green-600">
-                <MessageSquare />
-              </div>{' '}
-              WhatsApp
+              <MessageSquare size={20} /> WhatsApp Us
             </a>
           )
         }
@@ -174,8 +198,6 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
     const mobileMenu = document.getElementById('mobile-menu');
     const hamburgerIcon = document.getElementById('hamburger-icon');
     const closeIcon = document.getElementById('close-icon');
-
-    // Services toggle logic
     const servicesToggle = document.getElementById('mobile-services-toggle');
     const servicesList = document.getElementById('mobile-services-list');
     const servicesChevron = document.getElementById('services-chevron');
@@ -185,11 +207,8 @@ const phone = contactData.find((c) => c.platform === 'phone' || c.platform === '
         const isClosed = menuBtn.getAttribute('data-state') === 'closed';
         menuBtn.setAttribute('data-state', isClosed ? 'open' : 'closed');
         mobileMenu.classList.toggle('translate-x-full');
-
-        // Toggle icons
         hamburgerIcon?.classList.toggle('hidden');
         closeIcon?.classList.toggle('hidden');
-
         document.body.style.overflow = isClosed ? 'hidden' : '';
       };
     }

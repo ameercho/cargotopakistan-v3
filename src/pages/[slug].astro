@@ -1,132 +1,210 @@
 ---
 import { sanityClient } from '../lib/sanity';
 import Layout from '../layouts/Layout.astro';
+import { urlFor } from '../lib/sanity';
 import PortableText from '../components/PortableText.astro';
-import { MapPin } from 'lucide-react';
+import FaqSection from '../components/FaqSection.astro';
+import RatesTable from '../components/RatesTable.astro';
+import { Ship, Plane, FileText, Home, Package, Truck, MapPin, CheckCircle2 } from 'lucide-react';
 
 export async function getStaticPaths() {
-  if (!sanityClient) {
-    console.error('Sanity Client is missing.');
-    return [];
-  }
-
-  // Included 'companyPage' in the fetch
-  const data = await sanityClient.fetch(`*[_type in ["page", "service", "companyPage"]]`);
+  // Fetch all possible dynamic content types
+  const data = await sanityClient.fetch(`*[_type in ["service", "companyPage"]]`);
 
   return data.map((item: any) => ({
-    // Use the slug from Sanity, or fallback to the pageType for legal pages
-    params: { slug: item.slug?.current || item.pageType || 'unknown' },
+    params: { slug: item.slug?.current || 'unknown' },
     props: { item },
   }));
 }
 
-const { item } = Astro.props as { item: any };
+const { item } = Astro.props;
+if (!item) return Astro.redirect('/404');
 
-if (!item) {
-  return Astro.redirect('/404');
-}
-
+// --- DATA LOGIC ---
 const isService = item._type === 'service';
-const isLegal = item.pageType === 'privacy' || item.pageType === 'terms';
+const contactData = await sanityClient.fetch(`*[_type == "contactChannel" && isActive == true]`);
+const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
-// Dynamic data mapping
-const displayTitle = item.heroTitlePart1 || item.heroTitle || item.title || 'Cargo Service';
-const accentTitle = item.heroTitlePart2 || '';
-const displayDescription =
-  item.heroDescription || item.heroSubtitle || item.description || item.metaDescription || '';
-const displayContent = item.content || item.details || [];
-const displayCities = item.cityHighlights || item.serviceableAreas || [];
+const whatsapp = contactData.find((c: any) => c.platform === 'whatsapp')?.value;
+const phone = contactData.find(
+  (c: any) => c.platform === 'phone' || c.platform === 'landline'
+)?.value;
+
+// Icon Mapping for Services
+const iconMap: any = {
+  ship: Ship,
+  plane: Plane,
+  'file-text': FileText,
+  home: Home,
+  package: Package,
+  truck: Truck,
+};
+const IconComponent = isService ? iconMap[item.icon] || Package : null;
+
+// Schema.org Logic
+const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
+const faqSchemaItems =
+  item.faqs?.map((faq: any) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.answer || 'Contact us for details.' },
+  })) || [];
+
+const combinedSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': isService ? 'Service' : 'WebPage',
+      name: item.title,
+      description: item.metaDescription || item.description,
+      ...(isService && {
+        serviceType: item.serviceType || 'FreightTransportService',
+        offers: { '@type': 'Offer', priceCurrency: 'AED', price: item.startingPrice || '0' },
+      }),
+    },
+    ...(faqSchemaItems.length > 0 ? [{ '@type': 'FAQPage', mainEntity: faqSchemaItems }] : []),
+  ],
+};
 ---
 
 <Layout
-  title={`${item.seoTitle || displayTitle} | cargotopakistan.ae`}
-  description={item.metaDescription || displayDescription}
+  title={item.seoTitle || `${item.title} | ${settings?.title || 'Cargo to Pakistan'}`}
+  description={item.metaDescription || item.description}
+  ogImage={item.mainImage}
 >
-  <main class={`relative pt-32 pb-20 ${isLegal ? 'bg-slate-50' : 'bg-white'} min-h-screen`}>
-    <div class="max-w-6xl mx-auto px-6">
-      <header class={`mb-12 ${isLegal ? 'text-center max-w-3xl mx-auto' : ''}`}>
-        <div
-          class="flex items-center gap-3 text-blue-600 font-bold mb-4 uppercase tracking-widest text-sm justify-center lg:justify-start"
-        >
-          <span class="px-3 py-1 bg-blue-100 rounded-lg">
-            {isLegal ? 'Legal Document' : isService ? 'Service' : 'Logistics'}
-          </span>
-        </div>
-        <h1 class="text-4xl md:text-7xl font-black text-slate-900 mb-6 tracking-tight leading-none">
-          {displayTitle}
-          {accentTitle && <span class="text-blue-600">{accentTitle}</span>}
-        </h1>
-        <p class="text-xl text-slate-600 leading-relaxed">
-          {displayDescription}
-        </p>
-      </header>
+  <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 
-      <div class={`grid grid-cols-1 ${isLegal ? '' : 'lg:grid-cols-3'} gap-12`}>
-        <div class={isLegal ? 'max-w-4xl mx-auto w-full' : 'lg:col-span-2'}>
-          <article
-            class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate prose-lg max-w-none"
-          >
-            {
-              displayContent.length > 0 ? (
-                <PortableText value={displayContent} />
-              ) : (
-                <p class="text-slate-400 italic">
-                  Content is being updated by our Jebel Ali team...
-                </p>
-              )
-            }
-          </article>
-        </div>
+  {
+    isService ? (
+      /* --- SERVICE UI LAYOUT (High-End Dark Hero) --- */
+      <main class="bg-slate-50 min-h-screen">
+        <section class="relative min-h-[600px] md:min-h-[700px] flex items-center overflow-hidden bg-slate-900 pt-20 pb-32 md:pb-48">
+          {item.mainImage && (
+            <img
+              src={urlFor(item.mainImage).width(1600).url()}
+              alt={item.title}
+              class="absolute inset-0 w-full h-full object-cover opacity-40"
+            />
+          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+          <div class="relative z-10 max-w-6xl mx-auto px-6 w-full">
+            <nav class="text-blue-400 text-sm mb-6 flex items-center gap-2 font-medium">
+              <a href="/" class="hover:text-white transition-colors">
+                Home
+              </a>
+              <span>/</span>
+              <a href="/services" class="hover:text-white transition-colors">
+                Services
+              </a>
+              <span>/</span>
+              <span class="text-white truncate max-w-[150px]">{item.title}</span>
+            </nav>
+            <div class="inline-flex items-center gap-3 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-300 text-sm font-bold mb-6 backdrop-blur-md">
+              <IconComponent size={18} />
+              <span>Professional Logistics</span>
+            </div>
+            <h1 class="text-3xl md:text-7xl font-black text-white mb-6 tracking-tight max-w-4xl leading-[1.1]">
+              {item.heroTitle || item.title}
+            </h1>
+            <p class="text-lg md:text-2xl text-slate-300 max-w-2xl font-medium leading-relaxed">
+              {item.heroSubtitle || `Starting from AED ${item.startingPrice || 'Contact us'}`}
+            </p>
+          </div>
+        </section>
 
-        {
-          !isLegal && (
-            <div class="space-y-8">
-              {displayCities.length > 0 && (
-                <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
-                  <h3 class="text-xl font-black text-blue-900 mb-6 flex items-center gap-2">
-                    <MapPin className="text-blue-600" size={20} />
-                    Service Areas
+        <div class="max-w-6xl mx-auto px-4 md:px-6 -mt-12 md:-mt-24 relative z-20 pb-20">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+              <div class="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-xl border border-slate-100">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-6 italic">
+                  Reliable {item.title} Solution
+                </h2>
+                <div class="prose prose-slate prose-sm md:prose-lg max-w-none mb-10">
+                  <PortableText value={item.details} />
+                </div>
+                <RatesTable rates={item.rateTable} serviceTitle={item.title} />
+              </div>
+              {item.serviceableAreas?.length > 0 && (
+                <div class="bg-blue-600 rounded-[2rem] p-6 md:p-12 text-white shadow-2xl">
+                  <h3 class="text-xl md:text-2xl font-bold mb-8 flex items-center gap-4">
+                    <MapPin /> Fast Pickup Locations
                   </h3>
-                  <div class="flex flex-wrap gap-2">
-                    {displayCities.map((area: string) => (
-                      <span class="px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-xl border border-blue-200">
-                        {area}
-                      </span>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {item.serviceableAreas.map((area: string) => (
+                      <div class="flex items-center gap-2 p-3 bg-white/10 rounded-xl border border-white/10 italic font-semibold text-sm">
+                        <CheckCircle2 size={14} class="text-blue-300" /> {area}
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
-
-              <div class="bg-slate-900 p-8 rounded-[2rem] text-center text-white">
-                <h3 class="text-2xl font-black mb-4">Get a Quote</h3>
-                <p class="text-slate-400 mb-6">Expert cargo handling from UAE to Pakistan.</p>
-                <a
-                  href="/contact"
-                  class="block w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-2xl font-black transition-all"
-                >
-                  Contact Us
-                </a>
+              {item.faqs?.length > 0 && (
+                <div class="bg-white p-6 md:p-12 rounded-[2rem] shadow-sm border border-slate-100">
+                  <h3 class="text-2xl font-bold mb-10">Frequently Asked Questions</h3>
+                  <FaqSection faqs={item.faqs} />
+                </div>
+              )}
+            </div>
+            <div class="space-y-6">
+              <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 sticky top-24">
+                <h3 class="text-xl font-bold mb-6">Service Benefits</h3>
+                <ul class="space-y-4 mb-8">
+                  {item.keyFeatures?.map((f: string) => (
+                    <li class="flex items-start gap-3 text-slate-600 font-medium">
+                      <CheckCircle2 size={16} class="text-green-600 mt-1" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <div class="space-y-4">
+                  {whatsapp && (
+                    <a
+                      href={`https://wa.me/${whatsapp}`}
+                      class="block text-center py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg"
+                    >
+                      WhatsApp Quote
+                    </a>
+                  )}
+                  {phone && (
+                    <a
+                      href={`tel:${phone}`}
+                      class="block text-center py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg"
+                    >
+                      Call Specialist
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          )
-        }
-      </div>
-    </div>
-  </main>
+          </div>
+        </div>
+      </main>
+    ) : (
+      /* --- COMPANY/LEGAL UI LAYOUT (Clean Document Style) --- */
+      <main class="bg-slate-50 pt-32 pb-20 min-h-screen">
+        <div class="max-w-4xl mx-auto px-6">
+          <header class="text-center mb-12">
+            <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg font-bold uppercase tracking-widest text-xs">
+              {item.pageType === 'privacy' || item.pageType === 'terms'
+                ? 'Legal Document'
+                : 'Company Page'}
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black text-slate-900 mt-6 mb-4">{item.title}</h1>
+            <p class="text-lg text-slate-600 italic">{item.description || item.metaDescription}</p>
+          </header>
+          <article class="bg-white p-8 md:p-16 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate prose-lg max-w-none">
+            <PortableText value={item.content || item.details} />
+          </article>
+        </div>
+      </main>
+    )
+  }
 </Layout>
 
 <style is:global>
-  /* Professional styling for legal and service text */
   .prose h2 {
     @apply text-2xl font-black text-slate-900 mt-10 mb-4 tracking-tight;
   }
   .prose p {
     @apply mb-6 text-slate-600 leading-relaxed;
-  }
-  .prose strong {
-    @apply text-slate-900 font-bold;
-  }
-  .prose ul {
-    @apply list-disc pl-6 mb-6 text-slate-600;
   }
 </style>
