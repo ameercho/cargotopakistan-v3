@@ -31,6 +31,7 @@ export default defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
+      description: 'e.g. /route/slug',
       options: {
         source: (doc: any, context) => {
           // This logic isn't perfect in Sanity UI without a custom component,

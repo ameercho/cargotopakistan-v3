@@ -38,6 +38,7 @@ export default defineType({
       type: 'slug',
       group: 'content',
       options: {source: 'title'},
+      description: 'e.g., /origin/slug, or /destination/slug',
     }),
     defineField({
       name: 'heroTitle',
