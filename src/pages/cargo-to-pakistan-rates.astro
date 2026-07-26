@@ -1,7 +1,6 @@
 ---
 import { sanityClient, urlFor } from '../lib/sanity';
 import Layout from '../layouts/Layout.astro';
-import SEO from '../components/SEO.astro';
 
 // 1. Fetch Rates, Site Settings, and Network Partners
 const data = await sanityClient.fetch(`{
@@ -18,8 +17,7 @@ const pageDescription =
   'Get the latest 2026 cargo rates from Dubai to Pakistan. Sea cargo starts from low prices per kg. Door-to-door delivery with customs clearance included.';
 ---
 
-<Layout>
-  <SEO slot="head" title={pageTitle} description={pageDescription} />
+<Layout title={pageTitle} description={pageDescription}>
 
   <main class="bg-slate-50 min-h-screen pb-20">
     <section class="bg-blue-600 py-16 md:py-24 text-white">

@@ -95,6 +95,8 @@ const currentCanonical = canonicalUrl || `${baseDomain}${Astro.url.pathname}`;
         />
       )
     }
+
+    <slot name="head" />
   </head>
 
   <body class="bg-white min-h-screen font-sans antialiased overflow-x-hidden flex flex-col">
