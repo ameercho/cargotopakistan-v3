@@ -1,6 +1,45 @@
 ---
 const { settings } = Astro.props;
 
+// Parses Sanity's `openingHours` string (schema.org microdata format,
+// e.g. "Mo-Su 10:00-17:00") into a structured OpeningHoursSpecification.
+const DAY_ORDER = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAY_NAMES: Record<string, string> = {
+  Mo: 'Monday',
+  Tu: 'Tuesday',
+  We: 'Wednesday',
+  Th: 'Thursday',
+  Fr: 'Friday',
+  Sa: 'Saturday',
+  Su: 'Sunday',
+};
+
+function parseOpeningHours(raw?: string) {
+  if (!raw) return undefined;
+  const match = raw.trim().match(/^([A-Za-z,\-]+)\s+(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+  if (!match) return undefined;
+
+  const [, dayToken, opens, closes] = match;
+  let days: string[];
+  if (dayToken.includes('-')) {
+    const [start, end] = dayToken.split('-');
+    const startIdx = DAY_ORDER.indexOf(start);
+    const endIdx = DAY_ORDER.indexOf(end);
+    if (startIdx === -1 || endIdx === -1) return undefined;
+    days =
+      startIdx <= endIdx
+        ? DAY_ORDER.slice(startIdx, endIdx + 1)
+        : [...DAY_ORDER.slice(startIdx), ...DAY_ORDER.slice(0, endIdx + 1)];
+  } else {
+    days = dayToken.split(',');
+  }
+
+  const dayOfWeek = days.map((d) => DAY_NAMES[d]).filter(Boolean);
+  if (!dayOfWeek.length) return undefined;
+
+  return [{ '@type': 'OpeningHoursSpecification', dayOfWeek, opens, closes }];
+}
+
 // EXPERT FIX: We use an array for @type to ensure Google validation
 // while keeping the specific LogisticsBusiness classification.
 const schema = {
@@ -37,14 +76,7 @@ const schema = {
       availableLanguage: ['en', 'ur', 'hi'],
     },
   ],
-  openingHoursSpecification: [
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-      opens: '00:00',
-      closes: '23:59',
-    },
-  ],
+  openingHoursSpecification: parseOpeningHours(settings?.openingHours),
   sameAs: settings?.socialLinks || [],
   identifier: settings?.tradeLicense,
 };

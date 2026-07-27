@@ -22,6 +22,10 @@ const { title, description, ogImage, canonicalUrl, keywords, footerSeoText } = A
 // 1. Fetching EVERYTHING including the full headerMenu object
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
   ...,
+  ogImage{
+    ...,
+    asset->{url}
+  },
   headerMenu[] {
     label,
     link,
