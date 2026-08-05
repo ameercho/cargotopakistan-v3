@@ -74,6 +74,7 @@ const faqSchema =
   title={contactData?.seoTitle || 'Contact Us | Pakistan Cargo Contact'}
   description={contactData?.metaDescription ||
     'Get the best rates for cargo to pakistan near me. Contact our experts for safe and fast door-to-door delivery from UAE.'}
+  noIndex={contactData?.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(contactSchema)} slot="head" />
   {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}

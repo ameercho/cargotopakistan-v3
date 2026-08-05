@@ -67,6 +67,14 @@ export default defineType({
       validation: (Rule) => Rule.min(120).max(160),
     }),
     defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      group: 'seo',
+      initialValue: false,
+      description: 'Enable to exclude this page from Google indexing (adds a noindex tag).',
+    }),
+    defineField({
       name: 'keywords',
       title: 'Service Specific Keywords',
       type: 'array',

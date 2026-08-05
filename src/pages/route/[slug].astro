@@ -12,7 +12,8 @@ export async function getStaticPaths() {
       "originSubAreas": origin->subAreas,
       "destName": destination->title,
       "destProvince": destination->province,
-      "baseRate": baseRate
+      "baseRate": baseRate,
+      noIndex
     }
   `);
 
@@ -44,6 +45,7 @@ const routeSchema = {
 <Layout
   title={`Cargo from ${route.originName} to ${route.destName} | Door to Door Pakistan`}
   description={`Send your goods from ${route.originName} to ${route.destName} safely. We handle UAE collection from ${route.originSubAreas?.slice(0, 3).join(', ')} and deliver across ${route.destName}.`}
+  noIndex={route.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(routeSchema)} slot="head" />
 

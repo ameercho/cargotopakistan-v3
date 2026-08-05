@@ -15,9 +15,11 @@ interface Props {
   canonicalUrl?: string;
   keywords?: string[];
   footerSeoText?: string;
+  noIndex?: boolean;
 }
 
-const { title, description, ogImage, canonicalUrl, keywords, footerSeoText } = Astro.props;
+const { title, description, ogImage, canonicalUrl, keywords, footerSeoText, noIndex } =
+  Astro.props;
 
 // 1. Fetching EVERYTHING including the full headerMenu object
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]{
@@ -68,6 +70,7 @@ const finalOgImage = ogImage
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
     <title>{finalTitle}</title>
     <meta name="description" content={finalDesc} />

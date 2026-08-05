@@ -41,7 +41,7 @@ const schema = {
 };
 ---
 
-<Layout title={loc.seoTitle} description={loc.metaDescription}>
+<Layout title={loc.seoTitle} description={loc.metaDescription} noIndex={loc.noIndex}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} slot="head" />
 
   <main class="bg-slate-50">

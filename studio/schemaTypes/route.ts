@@ -54,6 +54,13 @@ export default defineType({
       type: 'number',
       description: 'Starting price per kg for this specific route',
     }),
+    defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Enable to exclude this page from Google indexing (adds a noindex tag).',
+    }),
   ],
   preview: {
     select: {

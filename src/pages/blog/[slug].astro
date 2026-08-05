@@ -70,6 +70,7 @@ const combinedSchema = {
 <Layout
   title={`${post.seoTitle || post.title} | ${settings?.businessName || 'Cargo to Pakistan'}`}
   description={post.metaDescription}
+  noIndex={post.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 

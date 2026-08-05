@@ -97,6 +97,14 @@ export default defineType({
       type: 'text',
       group: 'seo',
     }),
+    defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      group: 'seo',
+      initialValue: false,
+      description: 'Enable to exclude this page from Google indexing (adds a noindex tag).',
+    }),
   ],
   preview: {
     select: {title: 'title', type: 'type'},

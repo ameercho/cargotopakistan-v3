@@ -47,6 +47,7 @@ const originSchema = {
   title={loc.seoTitle || `Cargo to Pakistan from ${loc.title} | Door-to-Door Service`}
   description={loc.metaDescription ||
     `Best rates for shipping from ${loc.title} to Pakistan. Daily pickups in ${loc.subAreas?.join(', ')}. Sea and Air cargo specialists.`}
+  noIndex={loc.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(originSchema)} slot="head" />
 

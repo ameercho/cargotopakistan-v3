@@ -40,6 +40,14 @@ export default defineType({
         layout: 'tags',
       },
     }),
+    defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      group: 'seo',
+      initialValue: false,
+      description: 'Enable to exclude the homepage from Google indexing (adds a noindex tag).',
+    }),
 
     // --- HERO SECTION ---
     defineField({

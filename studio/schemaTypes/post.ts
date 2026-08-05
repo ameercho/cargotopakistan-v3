@@ -103,6 +103,14 @@ export default defineType({
       description: 'e.g., cargo to lahore, dubai to pakistan rates',
       group: 'seo',
     }),
+    defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      group: 'seo',
+      initialValue: false,
+      description: 'Enable to exclude this post from Google indexing (adds a noindex tag).',
+    }),
     // Rich Snippets
     defineField({
       name: 'faqs',

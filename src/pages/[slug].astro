@@ -75,6 +75,7 @@ const combinedSchema = {
   title={item.seoTitle || `${item.title} | ${settings?.title || 'Cargo to Pakistan'}`}
   description={item.metaDescription || item.description}
   ogImage={item.mainImage}
+  noIndex={item.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 

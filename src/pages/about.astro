@@ -60,6 +60,7 @@ const faqSchema =
   title={`${aboutData?.seoTitle || 'About Us'} | ${settings?.businessName || 'cargotopakistan.ae'}`}
   description={aboutData?.metaDescription ||
     `Learn why ${settings?.businessName} is the leader in UAE to Pakistan logistics.`}
+  noIndex={aboutData?.noIndex}
 >
   {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}
   <main class="bg-white">

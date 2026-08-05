@@ -47,6 +47,14 @@ export default defineType({
     // --- SEO Group ---
     defineField({name: 'seoTitle', type: 'string', title: 'SEO Browser Title', group: 'seo'}),
     defineField({name: 'metaDescription', type: 'text', title: 'Meta Description', group: 'seo'}),
+    defineField({
+      name: 'noIndex',
+      title: 'Hide from Search Engines?',
+      type: 'boolean',
+      group: 'seo',
+      initialValue: false,
+      description: 'Enable to exclude this page from Google indexing (adds a noindex tag).',
+    }),
 
     // --- Hero Section ---
     defineField({
