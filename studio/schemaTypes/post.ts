@@ -32,6 +32,14 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
     }),
     defineField({
+      name: 'updatedAt',
+      title: 'Last Substantively Updated',
+      type: 'datetime',
+      group: 'content',
+      description:
+        'Set this when you make a meaningful content update (not for typo fixes). Signals freshness to search engines and AI answer engines.',
+    }),
+    defineField({
       name: 'author',
       title: 'Expert Author',
       type: 'reference',
