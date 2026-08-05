@@ -26,23 +26,53 @@ const data = await sanityClient.fetch(
 
 const { author, settings } = data;
 
-const faqSchema = post.faqs
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: post.faqs.map((faq) => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
-      })),
-    }
-  : null;
+const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
+
+const articleSchema = {
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: post.metaDescription,
+  ...(post.mainImage && { image: urlFor(post.mainImage).width(1200).height(630).url() }),
+  datePublished: post.publishedAt || post._createdAt,
+  dateModified: post.updatedAt || post._updatedAt || post.publishedAt || post._createdAt,
+  ...(author && {
+    author: {
+      '@type': 'Person',
+      name: author.name,
+      ...(author.role && { jobTitle: author.role }),
+      ...(author.bio && { description: author.bio }),
+      ...(author.image && { image: urlFor(author.image).width(400).url() }),
+      ...(author.socialProfiles?.length > 0 && { sameAs: author.socialProfiles }),
+    },
+  }),
+  publisher: {
+    '@type': 'Organization',
+    name: settings?.businessName || 'Cargo to Pakistan',
+    logo: { '@type': 'ImageObject', url: `${baseUrl}/favicon.svg` },
+  },
+};
+
+const faqSchemaItems = post.faqs?.map((faq) => ({
+  '@type': 'Question',
+  name: faq.question,
+  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+})) || [];
+
+const combinedSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    articleSchema,
+    ...(faqSchemaItems.length > 0 ? [{ '@type': 'FAQPage', mainEntity: faqSchemaItems }] : []),
+  ],
+};
 ---
 
 <Layout
   title={`${post.seoTitle || post.title} | ${settings?.businessName || 'Cargo to Pakistan'}`}
   description={post.metaDescription}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
+
   <article class="max-w-5xl mx-auto px-6 py-12 md:py-24">
     <header class="max-w-3xl mx-auto text-center mb-16">
       <div
@@ -135,6 +165,4 @@ const faqSchema = post.faqs
       </aside>
     </div>
   </article>
-
-  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
 </Layout>
