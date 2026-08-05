@@ -6,7 +6,7 @@ import partner from './partner'
 import author from './author'
 import post from './post'
 import faqItem from './objects/faqItem'
-import {cta} from './objects/cta' // New Import
+import cta from './objects/cta'
 import homepage from './homepage'
 import contactChannel from './contactChannel'
 import blockContent from './blockContent'

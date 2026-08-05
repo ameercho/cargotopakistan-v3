@@ -1,7 +1,7 @@
-import {defineField} from 'sanity'
+import {defineField, defineType} from 'sanity'
 import {MousePointerClick} from 'lucide-react'
 
-export const cta = {
+export default defineType({
   name: 'cta',
   title: 'Call to Action',
   type: 'object',
@@ -107,4 +107,4 @@ export const cta = {
       ],
     }),
   ],
-}
+})
