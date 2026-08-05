@@ -48,6 +48,17 @@ const localPartners =
 const serviceAreas = settings?.mainServiceAreas || ['Dubai', 'Abu Dhabi', 'Sharjah'];
 const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
 
+const faqSchemaItems =
+  homeData?.faqs?.map((faq: any) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.atomicAnswer || faq.answer || 'Contact us for details.',
+    },
+    ...(faq.lastReviewed && { dateModified: faq.lastReviewed }),
+  })) || [];
+
 const businessSchema = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -68,6 +79,7 @@ const businessSchema = {
         { '@type': 'Country', name: 'Pakistan' },
       ],
     },
+    ...(faqSchemaItems.length > 0 ? [{ '@type': 'FAQPage', mainEntity: faqSchemaItems }] : []),
   ],
 };
 ---

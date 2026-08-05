@@ -26,10 +26,11 @@ const contactData = await sanityClient.fetch(
     },
     additionalContacts[] { label, number },
     locations[] { title, address, mapUrl },
-    faqs[] { 
-      question, 
-      atomicAnswer, 
-      detailedAnswer 
+    faqs[] {
+      question,
+      atomicAnswer,
+      detailedAnswer,
+      lastReviewed
     }
   }`
 );
@@ -54,6 +55,19 @@ const contactSchema = {
     telephone: mainPhone,
   },
 };
+
+const faqSchemaItems =
+  contactData?.faqs?.map((faq: any) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.atomicAnswer || 'Contact us for details.' },
+    ...(faq.lastReviewed && { dateModified: faq.lastReviewed }),
+  })) || [];
+
+const faqSchema =
+  faqSchemaItems.length > 0
+    ? { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqSchemaItems }
+    : null;
 ---
 
 <Layout
@@ -62,6 +76,7 @@ const contactSchema = {
     'Get the best rates for cargo to pakistan near me. Contact our experts for safe and fast door-to-door delivery from UAE.'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(contactSchema)} slot="head" />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />}
 
   <main class="bg-slate-50 min-h-screen">
     <section class="bg-slate-900 pt-32 pb-32 px-6 text-center relative overflow-hidden">
