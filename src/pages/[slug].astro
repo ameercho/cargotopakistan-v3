@@ -47,7 +47,11 @@ const faqSchemaItems =
   item.faqs?.map((faq: any) => ({
     '@type': 'Question',
     name: faq.question,
-    acceptedAnswer: { '@type': 'Answer', text: faq.answer || 'Contact us for details.' },
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.atomicAnswer || faq.answer || 'Contact us for details.',
+    },
+    ...(faq.lastReviewed && { dateModified: faq.lastReviewed }),
   })) || [];
 
 const combinedSchema = {
