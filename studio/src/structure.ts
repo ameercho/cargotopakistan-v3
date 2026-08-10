@@ -1,4 +1,4 @@
-import {FileText, Settings, Home, Truck, MapPin, BadgeDollarSign} from 'lucide-react'
+import {FileText, Settings, Home, Truck, BadgeDollarSign} from 'lucide-react'
 
 export const structure = (S: any) =>
   S.list()
@@ -36,12 +36,11 @@ export const structure = (S: any) =>
 
       // 5. Logistics Operations
       S.listItem().title('Our Services').icon(Truck).child(S.documentTypeList('service')),
-      S.listItem().title('Routes').icon(MapPin).child(S.documentTypeList('route')),
 
       // Filter out all handled types to keep sidebar clean
       ...S.documentTypeListItems().filter(
         (listItem: any) =>
-          !['siteSettings', 'homepage', 'companyPage', 'service', 'route', 'rateCard'].includes(
+          !['siteSettings', 'homepage', 'companyPage', 'service', 'rateCard'].includes(
             listItem.getId(),
           ),
       ),

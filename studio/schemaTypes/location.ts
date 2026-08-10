@@ -3,7 +3,7 @@ import {MapPin} from 'lucide-react'
 
 export default defineType({
   name: 'location',
-  title: 'Locations & Routes',
+  title: 'Locations',
   type: 'document',
   icon: MapPin,
   groups: [

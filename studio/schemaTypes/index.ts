@@ -11,7 +11,6 @@ import homepage from './homepage'
 import contactChannel from './contactChannel'
 import blockContent from './blockContent'
 import location from './location'
-import route from './route'
 import companyPage from './companyPage'
 
 export const schemaTypes = [
@@ -27,7 +26,6 @@ export const schemaTypes = [
 
   // Logistics & SEO (New Category)
   location,
-  route,
 
   // Blog & Content
   post,
