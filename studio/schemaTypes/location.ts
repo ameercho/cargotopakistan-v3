@@ -63,6 +63,14 @@ export default defineType({
       group: 'content',
       of: [{type: 'block'}, {type: 'image'}],
     }),
+    defineField({
+      name: 'mainImage',
+      title: 'Cover Image',
+      type: 'image',
+      group: 'content',
+      options: {hotspot: true},
+      fields: [{name: 'alt', type: 'string', title: 'Alt Text'}],
+    }),
     // LOGISTICS GROUP (For Schema.org data)
     defineField({
       name: 'province',

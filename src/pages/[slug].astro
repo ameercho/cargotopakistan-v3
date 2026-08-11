@@ -237,6 +237,14 @@ if (isOrigin) {
           </div>
         </section>
 
+        {item.description && (
+          <section class="pb-24 max-w-4xl mx-auto px-6">
+            <div class="prose prose-lg prose-slate max-w-none">
+              <PortableText value={item.description} />
+            </div>
+          </section>
+        )}
+
         <section class="py-20 bg-slate-50 rounded-[4rem] mx-4 mb-20 px-6">
           <div class="max-w-4xl mx-auto text-center">
             <h2 class="text-3xl font-black text-slate-900 mb-12">
@@ -345,6 +353,12 @@ if (isOrigin) {
                   ))}
                 </div>
               </div>
+
+              {item.description && (
+                <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 prose prose-slate max-w-none">
+                  <PortableText value={item.description} />
+                </div>
+              )}
             </div>
 
             <div class="space-y-6">
