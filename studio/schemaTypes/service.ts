@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {isSlugUniqueAcrossTypes} from './lib/slugUnique'
 
 export default defineType({
   name: 'service',
@@ -29,7 +30,8 @@ export default defineType({
       title: 'URL Slug',
       type: 'slug',
       group: 'content',
-      options: {source: 'title', maxLength: 96},
+      options: {source: 'title', maxLength: 96, isUnique: isSlugUniqueAcrossTypes},
+      description: 'Must be unique across all pages on the site, not just other services.',
       validation: (Rule) => Rule.required(),
     }),
     defineField({

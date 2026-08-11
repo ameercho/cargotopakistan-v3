@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {MapPin} from 'lucide-react'
+import {isSlugUniqueAcrossTypes} from './lib/slugUnique'
 
 export default defineType({
   name: 'location',
@@ -37,8 +38,10 @@ export default defineType({
       title: 'URL Slug',
       type: 'slug',
       group: 'content',
-      options: {source: 'title'},
-      description: 'e.g., /origin/slug, or /destination/slug',
+      options: {source: 'title', isUnique: isSlugUniqueAcrossTypes},
+      description:
+        'This is the full page path, e.g. "dubai-to-pakistan" → /dubai-to-pakistan. Must be unique across all pages on the site, not just other locations.',
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'heroTitle',

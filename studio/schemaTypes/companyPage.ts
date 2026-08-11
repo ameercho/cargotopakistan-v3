@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {FileText} from 'lucide-react'
+import {isSlugUniqueAcrossTypes} from './lib/slugUnique'
 
 export default defineType({
   name: 'companyPage',
@@ -40,7 +41,9 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
+        isUnique: isSlugUniqueAcrossTypes,
       },
+      description: 'Must be unique across all pages on the site, not just other company pages.',
       validation: (Rule) => Rule.required(),
     }),
 

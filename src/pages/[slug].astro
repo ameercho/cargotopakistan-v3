@@ -5,11 +5,28 @@ import { urlFor } from '../lib/sanity';
 import PortableText from '../components/PortableText.astro';
 import FaqSection from '../components/FaqSection.astro';
 import RatesTable from '../components/RatesTable.astro';
-import { Ship, Plane, FileText, Home, Package, Truck, MapPin, CheckCircle2 } from 'lucide-react';
+import {
+  Ship,
+  Plane,
+  FileText,
+  Home,
+  Package,
+  Truck,
+  MapPin,
+  CheckCircle2,
+  Clock,
+  PhoneCall,
+  ShieldCheck,
+  Box,
+} from 'lucide-react';
 
 export async function getStaticPaths() {
-  // Fetch all possible dynamic content types
-  const data = await sanityClient.fetch(`*[_type in ["service", "companyPage"]]`);
+  // Fetch all possible dynamic content types.
+  // 'location' covers both origin (UAE) and destination (Pakistan) city
+  // pages — they all resolve flat at root (e.g. /dubai-to-pakistan,
+  // /pakistan-cargo-to-karachi), matching the URL pattern that already
+  // earned Quality Score / conversion history on Google Ads.
+  const data = await sanityClient.fetch(`*[_type in ["service", "companyPage", "location"]]`);
 
   return data.map((item: any) => ({
     params: { slug: item.slug?.current || 'unknown' },
@@ -20,8 +37,12 @@ export async function getStaticPaths() {
 const { item } = Astro.props;
 if (!item) return Astro.redirect('/404');
 
-// --- DATA LOGIC ---
+// --- TYPE DETECTION ---
 const isService = item._type === 'service';
+const isLocation = item._type === 'location';
+const isOrigin = isLocation && item.type === 'origin';
+const isDestination = isLocation && item.type === 'destination';
+
 const contactData = await sanityClient.fetch(`*[_type == "contactChannel" && isActive == true]`);
 const settings = await sanityClient.fetch(`*[_type == "siteSettings"][0]`);
 
@@ -29,6 +50,11 @@ const whatsapp = contactData.find((c: any) => c.platform === 'whatsapp')?.value;
 const phone = contactData.find(
   (c: any) => c.platform === 'phone' || c.platform === 'landline'
 )?.value;
+
+// Only needed for origin pages (local services grid)
+const originServices = isOrigin
+  ? await sanityClient.fetch(`*[_type == "service"] | order(order asc) [0...3]`)
+  : [];
 
 // Icon Mapping for Services
 const iconMap: any = {
@@ -41,46 +67,310 @@ const iconMap: any = {
 };
 const IconComponent = isService ? iconMap[item.icon] || Package : null;
 
-// Schema.org Logic
 const baseUrl = settings?.siteUrl || 'https://cargotopakistan.ae';
-const faqSchemaItems =
-  item.faqs?.map((faq: any) => ({
-    '@type': 'Question',
-    name: faq.question,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: faq.atomicAnswer || faq.answer || 'Contact us for details.',
-    },
-    ...(faq.lastReviewed && { dateModified: faq.lastReviewed }),
-  })) || [];
 
-const combinedSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': isService ? 'Service' : 'WebPage',
-      name: item.title,
-      description: item.metaDescription || item.description,
-      ...(isService && {
-        serviceType: item.serviceType || 'FreightTransportService',
-        offers: { '@type': 'Offer', priceCurrency: 'AED', price: item.startingPrice || '0' },
-      }),
+// --- SCHEMA.ORG LOGIC (per type) ---
+let combinedSchema: any;
+
+if (isOrigin) {
+  combinedSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: `${settings?.businessName || 'Cargo to Pakistan'} - ${item.title} Branch`,
+    image: settings?.logo,
+    telePhone: settings?.phone,
+    url: `${baseUrl}/${item.slug.current}`,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: item.title,
+      addressRegion: item.province,
+      addressCountry: 'AE',
     },
-    ...(faqSchemaItems.length > 0 ? [{ '@type': 'FAQPage', mainEntity: faqSchemaItems }] : []),
-  ],
-};
+    description:
+      item.metaDescription ||
+      `Professional door-to-door cargo services from ${item.title} to all cities in Pakistan.`,
+    areaServed: [
+      { '@type': 'City', name: item.title },
+      { '@type': 'Country', name: 'Pakistan' },
+    ],
+  };
+} else if (isDestination) {
+  combinedSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: `Cargo Delivery to ${item.title}`,
+    description: item.metaDescription,
+    provider: {
+      '@type': 'LocalBusiness',
+      name: settings?.businessName,
+      image: settings?.logo,
+    },
+    areaServed: {
+      '@type': 'City',
+      name: item.title,
+      containedInPlace: { '@type': 'Country', name: 'Pakistan' },
+    },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Shipping Services',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Sea Cargo' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Air Cargo' } },
+      ],
+    },
+  };
+} else {
+  const faqSchemaItems =
+    item.faqs?.map((faq: any) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.atomicAnswer || faq.answer || 'Contact us for details.',
+      },
+      ...(faq.lastReviewed && { dateModified: faq.lastReviewed }),
+    })) || [];
+
+  combinedSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': isService ? 'Service' : 'WebPage',
+        name: item.title,
+        description: item.metaDescription || item.description,
+        ...(isService && {
+          serviceType: item.serviceType || 'FreightTransportService',
+          offers: { '@type': 'Offer', priceCurrency: 'AED', price: item.startingPrice || '0' },
+        }),
+      },
+      ...(faqSchemaItems.length > 0 ? [{ '@type': 'FAQPage', mainEntity: faqSchemaItems }] : []),
+    ],
+  };
+}
 ---
 
 <Layout
-  title={item.seoTitle || `${item.title} | ${settings?.title || 'Cargo to Pakistan'}`}
-  description={item.metaDescription || item.description}
+  title={
+    isOrigin
+      ? item.seoTitle || `Cargo to Pakistan from ${item.title} | Door-to-Door Service`
+      : item.seoTitle || `${item.title} | ${settings?.title || 'Cargo to Pakistan'}`
+  }
+  description={
+    isOrigin
+      ? item.metaDescription ||
+        `Best rates for shipping from ${item.title} to Pakistan. Daily pickups in ${item.subAreas?.join(', ')}. Sea and Air cargo specialists.`
+      : item.metaDescription || item.description
+  }
   ogImage={item.mainImage}
   noIndex={item.noIndex}
 >
   <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} slot="head" />
 
   {
-    isService ? (
+    isOrigin ? (
+      /* --- ORIGIN (UAE city) LAYOUT --- */
+      <main>
+        <section class="bg-slate-900 py-24 relative overflow-hidden">
+          <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-300 text-xs font-bold mb-6">
+              <MapPin size={14} />
+              <span>UAE Logistics Hub: {item.title}</span>
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black text-white mb-6 leading-tight">
+              Reliable Cargo from <span class="text-blue-500">{item.title}</span>
+              <br />to Pakistan
+            </h1>
+            <p class="text-slate-400 text-xl max-w-2xl leading-relaxed">
+              {item.heroSubtitle ||
+                `Daily door-to-door pickups across all major areas of ${item.title}. We ensure safe delivery from your UAE doorstep to any city in Pakistan.`}
+            </p>
+          </div>
+        </section>
+
+        <section class="py-12 bg-white border-b border-slate-100">
+          <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 text-center">
+              Standard Pickup Locations in {item.title}
+            </h2>
+            <div class="flex flex-wrap justify-center gap-3">
+              {item.subAreas?.map((area: string) => (
+                <span class="px-5 py-2 bg-slate-50 border border-slate-200 rounded-full text-slate-700 font-medium text-sm">
+                  {area}
+                </span>
+              ))}
+              <span class="px-5 py-2 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-bold text-sm">
+                + All Other {item.title} Zones
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="py-24 max-w-6xl mx-auto px-6">
+          <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div class="max-w-2xl">
+              <h2 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 italic">
+                Available Services in {item.title}
+              </h2>
+              <p class="text-slate-600 text-lg">
+                Choose the best shipping method for your needs. We handle all UAE customs
+                documentation and Pakistan clearance.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {originServices.map((service: any) => (
+              <div class="group bg-white rounded-[2.5rem] border border-slate-200 p-8 hover:shadow-2xl hover:border-blue-500 transition-all">
+                <div class="mb-6 p-4 bg-slate-50 rounded-2xl w-fit group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <Truck size={24} />
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">{service.title}</h3>
+                <p class="text-slate-600 text-sm mb-8 line-clamp-3">{service.description}</p>
+                <a
+                  href={`/${service.slug.current}`}
+                  class="flex items-center gap-2 font-bold text-blue-600 hover:gap-4 transition-all"
+                >
+                  View Rates <span class="text-xl">→</span>
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section class="py-20 bg-slate-50 rounded-[4rem] mx-4 mb-20 px-6">
+          <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl font-black text-slate-900 mb-12">
+              Why {settings?.businessName} in {item.title}?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+              <div class="flex gap-4">
+                <div class="shrink-0 w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900">Swift {item.title} Pickup</h4>
+                  <p class="text-sm text-slate-600">
+                    Call before 2:00 PM for same-day cargo collection across {item.province}.
+                  </p>
+                </div>
+              </div>
+              <div class="flex gap-4">
+                <div class="shrink-0 w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900">Secure Packaging</h4>
+                  <p class="text-sm text-slate-600">
+                    Professional industrial packing available for electronics and fragile items.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="max-w-6xl mx-auto px-6 pb-24 text-center">
+          <div class="bg-blue-600 rounded-[3rem] p-12 text-white shadow-2xl shadow-blue-200">
+            <h2 class="text-3xl md:text-5xl font-black mb-6">Ship from {item.title} Today</h2>
+            <p class="text-blue-100 mb-10 text-lg">
+              Contact our {item.title} operations team for exclusive weight-based rates.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href={`tel:${settings?.phone}`}
+                class="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
+              >
+                <PhoneCall size={18} /> Call Specialist
+              </a>
+              <a
+                href={`https://wa.me/${settings?.whatsappNumber}?text=Hi, I want to ship from ${item.title} to Pakistan.`}
+                class="bg-green-500 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
+              >
+                WhatsApp Quote
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
+    ) : isDestination ? (
+      /* --- DESTINATION (Pakistan city) LAYOUT --- */
+      <main class="bg-slate-50">
+        <section class="bg-blue-900 py-24 relative overflow-hidden">
+          <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <span class="inline-block px-4 py-1 bg-blue-500/30 rounded-full text-blue-200 text-sm font-bold mb-6">
+              Destination Hub: {item.province}
+            </span>
+            <h1 class="text-4xl md:text-7xl font-black text-white mb-6">
+              Cargo to <span class="text-blue-400 italic">{item.title}</span>
+            </h1>
+            <p class="text-blue-100 text-lg max-w-2xl leading-relaxed">{item.heroSubtitle}</p>
+          </div>
+        </section>
+
+        <div class="max-w-6xl mx-auto px-6 -mt-12 pb-24">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+              <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-slate-100">
+                <h2 class="text-3xl font-black text-slate-900 mb-8 italic">Reliable Timelines</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div class="flex items-center gap-3 mb-4 text-blue-600">
+                      <Clock size={24} />
+                      <span class="font-black uppercase tracking-widest text-xs">
+                        Estimated Transit
+                      </span>
+                    </div>
+                    <p class="text-2xl font-bold text-slate-900">{item.deliveryTimeline}</p>
+                  </div>
+                  <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div class="flex items-center gap-3 mb-4 text-green-600">
+                      <ShieldCheck size={24} />
+                      <span class="font-black uppercase tracking-widest text-xs">Security</span>
+                    </div>
+                    <p class="text-2xl font-bold text-slate-900">Door-to-Door Guaranteed</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h2 class="text-3xl font-black text-slate-900 mb-6 italic">
+                  Areas Covered in {item.title}
+                </h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {item.subAreas?.map((area: string) => (
+                    <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <CheckCircle2 size={18} class="text-blue-500 shrink-0" />
+                      <span class="font-bold text-slate-800 text-sm">{area}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 sticky top-24">
+                <Box size={32} class="text-blue-600 mb-6" />
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Request Rates</h3>
+                <div class="space-y-3">
+                  <a
+                    href={`https://wa.me/${settings?.whatsappNumber}`}
+                    class="flex items-center justify-center w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all"
+                  >
+                    WhatsApp Quote
+                  </a>
+                  <a
+                    href={`tel:${settings?.phone}`}
+                    class="flex items-center justify-center w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all"
+                  >
+                    Call Support
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    ) : isService ? (
       /* --- SERVICE UI LAYOUT (High-End Dark Hero) --- */
       <main class="bg-slate-50 min-h-screen">
         <section class="relative min-h-[600px] md:min-h-[700px] flex items-center overflow-hidden bg-slate-900 pt-20 pb-32 md:pb-48">
